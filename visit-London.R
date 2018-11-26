@@ -44,8 +44,6 @@ ggplot(test2, aes(x=market, y=sum, fill=purpose))+geom_bar(stat="identity",posit
 #on remarque que les 3 principaux pays venant pour le business sont les USA, l'Allemagne et la france
 #peut être peux-t-on changer la visualisation des données
 
-#trop de pays différents pour tous les afficher
-ggplot(head(arrange(perCountry, -sum), 15), aes(x=market, y=sum, fill=market))+geom_bar(stat="identity",position="dodge")
 
 
 ##********************************************
@@ -56,7 +54,7 @@ ggplot(head(arrange(perCountry, -sum), 15), aes(x=market, y=sum, fill=market))+g
 
 #progression du nombre de visite en fonction du temps
 perYear <- ddply(visits, .(year), summarise, sum=sum(sample))
-ggplot(perYear, aes(x=year, y=sum))+geom_line()
+ggplot(perYear, aes(x=year, y=sum))+ geom_point()
 
 
 
