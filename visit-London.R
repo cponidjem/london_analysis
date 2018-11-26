@@ -24,16 +24,8 @@ topCountry <- head(arrange(perCountry, -sum),10)
 #topNameF <- head(arrange(nameF, -sum),5)
 ggplot(topCountry, aes(x=market, y=sum, fill=market))+geom_bar(stat="identity",position="dodge")
 
-#nombre de visiteur en fonction du pays d'origine
-perCountry <- ddply(visits, .(market), summarise, sum=sum(sample))
-
-#trop de pays différents pour tous les afficher
+#ou sans passer par topCountry (plus compacte)
 ggplot(head(arrange(perCountry, -sum), 15), aes(x=market, y=sum, fill=market))+geom_bar(stat="identity",position="dodge")
-
-#autre méthode
-#top 10 en nombre de visiteurs 
-topCountry <- head(arrange(perCountry, -sum),10)
-ggplot(topCountry, aes(x=market, y=sum, fill=market))+geom_bar(stat="identity",position="dodge")
 
 #nombre de visiteurs par motifs de venue
 perPurpose <- ddply(visits, .(market, purpose), summarise, sum2=sum(sample))
