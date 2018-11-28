@@ -13,6 +13,24 @@ library(readxl)
 visits <- read_excel("international-visitors-london2.xlsx", sheet=5)
 View(visits)
 
+p1 <- c("2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017")
+p2 <- c("2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009")
+p3 <- c("2015", "2016", "2017")
+p4 <- c("2012", "2013", "2014")
+
+
+##************************************
+##
+##Volume de donnée selon les années
+##
+##************************************
+dataPerYear <- ddply(visits, .(year), summarise, sum=sum(sample))
+ggplot(dataPerYear, aes(x=year, y=sum, fill=year))+geom_bar(stat="identity")
+#on observe que nous avons moins de donnée en 2018, c'est normal puisque l'étude a été terminée avant la fin de l'année complète
+#on peut enlever l'année 2018 pour ne pas fausser les résultats par an
+#on pourrait faire une moyenne du nombre de données par an, voir si le nombre est conséquent pour prouver la validité de notre model
+
+
 ##*************************************
 #
 #  Profil des visiteurs
@@ -45,7 +63,6 @@ ggplot(test2, aes(x=market, y=sum, fill=purpose))+geom_bar(stat="identity",posit
 #peut être peux-t-on changer la visualisation des données
 
 
-
 ##********************************************
 #
 #  Evolution des visites dans le temps
@@ -54,8 +71,37 @@ ggplot(test2, aes(x=market, y=sum, fill=purpose))+geom_bar(stat="identity",posit
 
 #progression du nombre de visite en fonction du temps
 perYear <- ddply(visits, .(year), summarise, sum=sum(sample))
-ggplot(perYear, aes(x=year, y=sum))+ geom_point()
+ggplot(perYear, aes(x=year, y=sum))+ geom_bar(stat="identity")
 
+#en gardant tous les point
+perYearMarket <- ddply(visits, .(year, market), summarise, sum=sum(sample))
+ggplot(perYearMarket, aes(x=year, y=sum, color=market)) + geom_point(size=2.5)
+
+
+#évolution de la part des gens venu pour la travail de 2010 à 2017
+data1 <- subset(visits, year %in% p1)
+businessData <- ddply(subset(data1, purpose == "Business"), .(year), summarise, sum=sum(sample))
+ggplot(businessData, aes(x=year, y=sum)) + geom_point(size=4) + geom_line(size=2)
+ggplot(businessData, aes(x=year, y=sum)) +geom_bar(stat="identity")
+#il y a vraiment une différence entre les point et les barres pour la visualisation
+#baisse du au brexit ? il faudrait que regarder le pourcentage, voir si c'est significatif
+
+#évolution pour les vacances
+holidayData <- ddply(subset(data1, purpose == "Holiday"), .(year), summarise, sum=sum(sample))
+ggplot(holidayData, aes(x=year, y=sum, fill=year)) +geom_bar(stat="identity")
+#ça semple rester stable
+
+##********************************************
+##
+##Evolution des moyens de transports dans le temps
+##
+##********************************************
+
+Last3Year <- ddply(subset(visits, year %in% p3), .(year, mode), summarise, sum=sum(sample))
+ggplot(Last3Year, aes(x=year, y=sum, fill=mode))+geom_bar(stat="identity", position="dodge")
+p4Mode <- ddply(subset(visits, year %in% p4), .(year, mode), summarise, sum=sum(sample))
+ggplot(p4Mode, aes(x=year, y=sum, fill=mode))+geom_bar(stat="identity", position="dodge") 
+#toujours majoritairement par avion
 
 
 ##***************************************************************************************
