@@ -17,18 +17,15 @@ p1 <- c("2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017")
 p2 <- c("2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009")
 p3 <- c("2015", "2016", "2017")
 p4 <- c("2012", "2013", "2014")
+p5 <- c("2013", "2014","2015", "2016", "2017")
+
+visitsp5 <- subset(visits, year %in% p5)
+length(visits)
 
 
-##************************************
-##
 ##Volume de donnée selon les années
-##
-##************************************
-dataPerYear <- ddply(visits, .(year), summarise, sum=sum(sample))
-ggplot(dataPerYear, aes(x=year, y=sum, fill=year))+geom_bar(stat="identity")
-#on observe que nous avons moins de donnée en 2018, c'est normal puisque l'étude a été terminée avant la fin de l'année complète
-#on peut enlever l'année 2018 pour ne pas fausser les résultats par an
-#on pourrait faire une moyenne du nombre de données par an, voir si le nombre est conséquent pour prouver la validité de notre model
+dataPerYear <- ddply(visitsp5, .(year), summarise, sum=sum(sample))
+ggplot(dataPerYear, aes(x=year, y=sum))+geom_bar(stat="identity", fill="steelblue") + geom_text(aes(label=sum), vjust=1.6, color="white", size=3.5)
 
 
 ##*************************************
@@ -37,27 +34,31 @@ ggplot(dataPerYear, aes(x=year, y=sum, fill=year))+geom_bar(stat="identity")
 #
 ##*************************************
 
-perCountry <- ddply(visits, .(market), summarise, sum=sum(sample))
-topCountry <- head(arrange(perCountry, -sum),10)
+perCountry <- ddply(visitsp5, .(market), summarise, sum=sum(sample))
+topCountry <- head(arrange(perCountry, -sum),4)
 #topNameF <- head(arrange(nameF, -sum),5)
 ggplot(topCountry, aes(x=market, y=sum, fill=market))+geom_bar(stat="identity",position="dodge")
-
 #ou sans passer par topCountry (plus compacte)
-ggplot(head(arrange(perCountry, -sum), 15), aes(x=market, y=sum, fill=market))+geom_bar(stat="identity",position="dodge")
+ggplot(head(arrange(perCountry, -sum), 6), aes(x=market, y=sum, fill=market))+geom_bar(stat="identity",position="dodge")
+
 
 #nombre de visiteurs par motifs de venue
-perPurpose <- ddply(visits, .(market, purpose), summarise, sum2=sum(sample))
+perPurpose <- ddply(visitsp5, .(market, purpose), summarise, sum2=sum(sample))
 ggplot(perPurpose, aes(x=purpose, y=sum2, fill=purpose))+geom_bar(stat="identity",position="dodge")
+
+#nombre de visiteurs par motifs de venue et par ans
+purposePerYear <-ddply(visitsp5, .(year, purpose), summarise, sum=sum(visits))
+ggplot(purposePerYear, aes(x=year, y=sum, colour=purpose))+geom_line() + geom_point()
 
 #motifs de venue pour les visiteurs US
 USpurpose <- ddply(subset(visits, market=="USA"), .(market, purpose, sample), summarise, sum=sum(sample))
-ggplot(USpurpose, aes(x=purpose, y=sum, fill=purpose))+geom_bar(stat="identity",position="dodge")
+ggplot(USpurpose, aes(x=purpose, y=sum, fill=purpose))+geom_point(stat="identity",position="dodge")
 
-#nombre de visiteur par motifs et par pays, on prendre les 30 plus grandes valeurs 
-testCountry <- ddply(visits, .(market, purpose), summarise, sum=sum(sample))
-test2<-(head(arrange(testCountry, -sum),10))
-ggplot(test2, aes(x=market, y=sum, fill=purpose))+geom_bar(stat="identity",position="dodge")
-ggplot(test2, aes(x=market, y=sum, fill=purpose))+geom_bar(stat="identity",position="stack")
+
+
+#nombre de visiteur par motifs pour les pays dans le topCountry
+testCountry <- ddply(subset(visitsp5, market %in% topCountry$market), .(market, purpose), summarise, sum=sum(visits))
+ggplot(testCountry, aes(x=market, y=sum, fill=purpose))+geom_bar(stat="identity")+geom_text(aes(y=sum, label=sum), color="white", size=3.5)
 
 #on remarque que les 3 principaux pays venant pour le business sont les USA, l'Allemagne et la france
 #peut être peux-t-on changer la visualisation des données
@@ -70,12 +71,12 @@ ggplot(test2, aes(x=market, y=sum, fill=purpose))+geom_bar(stat="identity",posit
 ##********************************************
 
 #progression du nombre de visite en fonction du temps
-perYear <- ddply(visits, .(year), summarise, sum=sum(sample))
-ggplot(perYear, aes(x=year, y=sum))+ geom_bar(stat="identity")
+perYear <- ddply(visitsp5, .(year), summarise, sum=sum(sample))
+ggplot(perYear, aes(x=year, y=sum))+ geom_line(size=2, inherit.aes = FALSE)+ geom_point(size=2.5)
 
 #en gardant tous les point
 perYearMarket <- ddply(visits, .(year, market), summarise, sum=sum(sample))
-ggplot(perYearMarket, aes(x=year, y=sum, color=market)) + geom_point(size=2.5)
+ggplot(perYearMarket, aes(x=year, y=sum)) + geom_point(size=2.5) 
 
 
 #évolution de la part des gens venu pour la travail de 2010 à 2017
@@ -90,6 +91,10 @@ ggplot(businessData, aes(x=year, y=sum)) +geom_bar(stat="identity")
 holidayData <- ddply(subset(data1, purpose == "Holiday"), .(year), summarise, sum=sum(sample))
 ggplot(holidayData, aes(x=year, y=sum, fill=year)) +geom_bar(stat="identity")
 #ça semple rester stable
+
+#spend evolution
+spendEvol <- ddply(visits, .(year, dur_stay, spend, sample))
+ggplot(spendEvol, aes(x= spend, y=dur_stay)) + geom_bar(stat="identity")
 
 ##********************************************
 ##
