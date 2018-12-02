@@ -30,7 +30,7 @@ visitsp5 <- select(visitsp5, -sample)
 
 visitsp6 <- data.frame(visitsp5)
 #on ajoute une colonne dépense par jour par personnes
-visitsp6$Days=(visitsp5$spend*1000)/visitsp5$nights
+visitsp6$spendDaysVisitor=((visitsp6$spend*1000)/visitsp6$nights)/visitsp6$visits
 glimpse(visitsp5)
 
 visitsp6 <- select (visitsp6, -area, -quarter, -dur_stay, -market, -spend)
