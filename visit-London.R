@@ -30,13 +30,13 @@ visitsp5 <- select(visitsp5, -sample)
 
 visitsp6 <- data.frame(visitsp5)
 #on ajoute une colonne dÃ©pense par jour par personnes
-visitsp6$spendDaysVisitor=((visitsp6$spend)*1000000/visitsp6$nights)/visitsp6$visits
+visitsp6$spendDaysVisitor=((visitsp6$spend*1000)/visitsp6$nights)/visitsp6$visits
 glimpse(visitsp5)
 
 visitsp6 <- select (visitsp6, -area, -quarter, -dur_stay, -market, -spend)
 visitsp6 <- mutate(visitsp6, purpose = factor(purpose, level=c("Study", "Miscellaneous", "VFR", "Holiday", "Business")))
 visitsp6 <- mutate(visitsp6, mode = factor(mode, level=c("Sea", "Tunnel", "Air")))
-View(visitsp6)
+
 length(visitsp5)
 
 
@@ -99,7 +99,7 @@ nightsTopCountryPlot <- ggplot(topCountryNights, aes(x=market, y=sum, fill=marke
 
 spendPerCountry  <- ddply(visitsp5, .(market), summarise, sum=sum(spend))
 topCountrySpend <- head(arrange(spendPerCountry, -sum),6)
-spendTopCountryPlot <- ggplot(topCountrySpend, aes(x=market, y=sum, fill=market))+geom_bar(stat="identity",position="dodge")+labs(x="Pays",y="Dépenses (milliers de livres)",fill = "Pays")
+spendTopCountryPlot <- ggplot(topCountrySpend, aes(x=market, y=sum, fill=market))+geom_bar(stat="identity",position="dodge")+labs(x="Pays",y="D?penses (millions de livres)",fill = "Pays")
 
 plot_grid(visitsTopCountryPlot, nightsTopCountryPlot,spendTopCountryPlot,labels=c("Les 6 premiers pays ? venir en plus grand nombre ? Londres", "Les 6 premiers pays ? venir le plus longtemps ? Londres","Les 6 premiers pays ? d?penser le plus ? Londres"), ncol = 1, nrow = 3)
 
@@ -192,11 +192,11 @@ spend <- ddply(visitsp5, .(dur_stay, spend))
 
 #Depenses en fonction de l'annee et du pays d'origine
 spendPerMarket <- ddply(subset(visitsp5,market %in% topCountrySpend$market), .(year, market), summarise, sum=sum(spend))
-ggplot(spendPerMarket, aes(x=year, y=sum, colour=market))+geom_line() + geom_point()+labs(title="Dépenses en fonction du pays d'origine et de l'année",x="Années",y="Dépenses (milliers de livres)",color = "Pays d'origine")
+ggplot(spendPerMarket, aes(x=year, y=sum, colour=market))+geom_line() + geom_point()+labs(title="D?penses en fonction du pays d'origine et de l'ann?e",x="Ann?es",y="D?penses (millions de livres)",color = "Pays d'origine")
 
 #Depenses en fonction de l'annee et du motif
 spendsPerPurposeAndYear <-ddply(visitsp5, .(year, purpose), summarise, sum=sum(spend))
-ggplot(spendsPerPurposeAndYear, aes(x=year, y=sum, colour=purpose))+geom_line() + geom_point()+labs(title="Dépenses en fonction du motif et de l'année",x="Années",y="Dépenses (milliers de livres)",color = "Motif")
+ggplot(spendsPerPurposeAndYear, aes(x=year, y=sum, colour=purpose))+geom_line() + geom_point()+labs(title="D?penses en fonction du motif et de l'ann?e",x="Ann?es",y="D?penses (millions de livres)",color = "Motif")
 
 
 ##***************************************************************************************
