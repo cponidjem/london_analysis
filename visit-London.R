@@ -4,11 +4,14 @@
 ##
 ##*****************************************
 install.packages("cowplot")
+install.packages("randomForest")
 library(ggplot2)
 library(plyr)
 library(dplyr)
 library(gdata)
 library(readxl)
+library(cowplot)
+library(randomForest)
 
 
 visitsLondon <- read_excel("international-visitors-london2.xlsx", sheet=5)
@@ -22,13 +25,30 @@ p4 <- c("2012", "2013", "2014")
 p5 <- c("2013", "2014","2015", "2016", "2017")
 
 visitsp5 <- subset(visitsLondon, year %in% p5)
+visitsp5 <- select(visitsp5, -sample)
+
+visitsp6 <- data.frame(visitsp5)
+#on ajoute une colonne dépense par jour par personnes
+visitsp6$Days=(visitsp5$spend*1000)/visitsp5$nights
+glimpse(visitsp5)
+
+visitsp6 <- select (visitsp6, -area, -quarter, -dur_stay, -market, -spend)
+visitsp6 <- mutate(visitsp6, purpose = factor(purpose, level=c("Study", "Miscellaneous", "VFR", "Holiday", "Business")))
+visitsp6 <- mutate(visitsp6, mode = factor(mode, level=c("Sea", "Tunnel", "Air")))
+
 length(visitsp5)
 
 
 ##Volume de visites selon les années de 2013 à 2017
-dataPerYear <- ddply(visitsp5, .(year), summarise, sum=sum(visits))
+dataPerYear <- ddply(visitsp5, .(year), summarise, sum=sum(visits, na.rm=T))
 ggplot(dataPerYear, aes(x=year, y=sum))+geom_bar(stat="identity", fill="steelblue")+ggtitle("Volume de visiteurs selon les années")+xlab("Année")+ylab("Nombre de visiteurs")
 
+
+#randomForest
+#diviser la dépense par visiteurs
+fit1 <- randomForest(spendDay ~ ., data=visitsp6, na.action=na.roughfix, localImp=TRUE)
+print(fit1)
+varImpPlot(fit1)
 
 ##*************************************
 #
@@ -44,6 +64,7 @@ g7 <- ggplot(head(arrange(profil17, -sum), 6), aes(x=market, y=sum, fill=market)
 #2016
 profil16 <- ddply(subset(visitsp5, year %in%"2016"), .(market), summarise, sum=sum(visits))
 g6 <- ggplot(head(arrange(profil16, -sum), 6), aes(x=market, y=sum, fill=market))+geom_bar(stat="identity",position="dodge")
+glimpse(g6)
 
 #2015
 profil15 <- ddply(subset(visitsp5, year %in%"2015"), .(market), summarise, sum=sum(visits))
@@ -60,6 +81,8 @@ g3 <- ggplot(head(arrange(profil13, -sum), 6), aes(x=market, y=sum, fill=market)
 
 plot_grid(g7, g6,g5, g4,g3,labels=c("2017", "2016","2015", "2014", "2013"), ncol = 3, nrow = 2)
 
+#évolution du volume d'Australien en visite à Londres
+Australie <- 
 
 #top des pays d'origine des visiteursles plus nombreux sur 2013-2017
 perCountry <- ddply(visitsp5, .(market), summarise, sum=sum(visits))
@@ -124,8 +147,11 @@ ggplot(transportPerCountry, aes(x=market, y=sum, fill=mode))+geom_bar(stat="iden
 transportPerQuarter <- ddply(visitsp5, .(quarter, mode), summarise, sum=sum(visits))
 ggplot(transportPerQuarter, aes(x=quarter, y=sum, fill=mode))+geom_bar(stat="identity", position="dodge")
 
-visitsPerQuarter <- ddply(visitsp5, .(quarter), summarise, sum=sum(visits))
-ggplot(visitsPerQuarter, aes(x=quarter, y=sum))+geom_bar(stat="identity")
+#faire une mediane 
+#ou diagramme de bar par année et quarter
+#incorporer 2018
+visitsPerQuarter <- ddply(visitsp5, .(year, quarter), summarise, sum=sum(visits))
+ggplot(visitsPerQuarter, aes(x=year, y=sum, fill=quarter))+geom_bar(stat="identity", position="dodge")
 #moins de fréquentation en Q1
 
 #en conclusion peu de variation pour le mode de transport que ce soit en fonction des années ou des saisons
@@ -133,11 +159,12 @@ ggplot(visitsPerQuarter, aes(x=quarter, y=sum))+geom_bar(stat="identity")
 #**************************************
 #
 #Montant des dépenses par jour
+
 #
 #**************************************
 
-spend <- ddply(visitsp5, .(dur_stay, spend))
-
+spendPerPurpose <- ddply(visitsp5, .(year, purpose, spend), summarise, sum=sum(visits))
+ggplot(spendPerPurpose, aes(x=year, y=sum, fill=purpose))+geom_bar(stat="identity", position="dodge")
 
 ##***************************************************************************************
 ##
