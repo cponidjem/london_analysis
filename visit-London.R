@@ -14,42 +14,40 @@ library(readxl)
 library(cowplot)
 library(randomForest)
 
-
 visitsLondon <- read_excel("international-visitors-london2.xlsx", sheet=5)
-
 View(visitsLondon)
 
-p1 <- c("2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017")
-p2 <- c("2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009")
-p3 <- c("2015", "2016", "2017")
-p4 <- c("2012", "2013", "2014")
 p5 <- c("2013", "2014","2015", "2016", "2017")
 
 visitsp5 <- subset(visitsLondon, year %in% p5)
-visitsp5 <- select(visitsp5, -sample)
-
-visitsp6 <- data.frame(visitsp5)
-#on ajoute une colonne dépense par jour par personnes
-visitsp6$spendDaysVisitor=((visitsp6$spend*1000)/visitsp6$nights)/visitsp6$visits
+visitsp5 <- select(visitsp5, -sample, -area)
 glimpse(visitsp5)
 
-visitsp6 <- select (visitsp6, -area, -quarter, -dur_stay, -market, -spend)
+#test pour les dépenses par jour par personnes
+visitsp6 <- data.frame(visitsp5)
+visitsp6$spend=(visitsp6$spend)*1000
+visitsp6$spendDaysVisitor=(visitsp6$spend)/(visitsp6$nights)
+visitsp6$nightsVisitor=(visitsp6$nights)/(visitsp6$visits)
+
+#vérifier nos chiffres avec les chiffres de journaux
+test4 <- ddply(subset(visitsp6, year=="2015"), .(year), summarise, sum=sum(visits))
+#response : 18.58115 millions
+#d'après le figaro 18,6 millions 
+#c'est cohérent
+
+#randomForest : regarder les variables impactant la dépense
+visitsp6 <- select (visitsp6, -area, -quarter, -dur_stay, -market, -spend, -visits, -nights)
 visitsp6 <- mutate(visitsp6, purpose = factor(purpose, level=c("Study", "Miscellaneous", "VFR", "Holiday", "Business")))
 visitsp6 <- mutate(visitsp6, mode = factor(mode, level=c("Sea", "Tunnel", "Air")))
-
-length(visitsp5)
+fit1 <- randomForest(spendDaysVisitor ~ ., data=visitsp6, na.action=na.roughfix, localImp=TRUE)
+print(fit1)
+varImpPlot(fit1)
 
 
 ##Volume de visites selon les années de 2013 à 2017
 dataPerYear <- ddply(visitsp5, .(year), summarise, sum=sum(visits, na.rm=T))
 ggplot(dataPerYear, aes(x=year, y=sum))+geom_bar(stat="identity", fill="steelblue")+ggtitle("Volume de visiteurs selon les années")+xlab("Année")+ylab("Nombre de visiteurs")
 
-
-#randomForest
-#diviser la dépense par visiteurs
-fit1 <- randomForest(spendDay ~ ., data=visitsp6, na.action=na.roughfix, localImp=TRUE)
-print(fit1)
-varImpPlot(fit1)
 
 ##*************************************
 #
