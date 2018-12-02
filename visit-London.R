@@ -4,6 +4,7 @@
 ##
 ##*****************************************
 install.packages("cowplot")
+library(cowplot)
 library(ggplot2)
 library(plyr)
 library(dplyr)
@@ -66,7 +67,19 @@ perCountry <- ddply(visitsp5, .(market), summarise, sum=sum(visits))
 topCountry <- head(arrange(perCountry, -sum),6)
 #ggplot(topCountry, aes(x=market, y=sum, fill=market))+geom_bar(stat="identity",position="dodge")
 #ou sans passer par topCountry (plus compacte)
-ggplot(head(arrange(perCountry, -sum), 6), aes(x=market, y=sum, fill=market))+geom_bar(stat="identity",position="dodge")+labs(title="Les 6 premiers pays Ã  venir en plus grand nombre Ã  Londres",x="Pays",y="Nombre de visiteurs",fill = "Pays")
+visitsTopCountryPlot <- ggplot(topCountry, aes(x=market, y=sum, fill=market))+geom_bar(stat="identity",position="dodge")+labs(x="Pays",y="Nombre de visiteurs",fill = "Pays")
+
+#on a ici les topCOuntry pour le nombre de visites, qu'en est-il pour le nombres de nuits passees et le depenses ?
+nightsPerCountry  <- ddply(visitsp5, .(market), summarise, sum=sum(nights))
+topCountryNights <- head(arrange(nightsPerCountry, -sum),6)
+nightsTopCountryPlot <- ggplot(topCountryNights, aes(x=market, y=sum, fill=market))+geom_bar(stat="identity",position="dodge")+labs(x="Pays",y="Nombre de nuits",fill = "Pays")
+
+spendPerCountry  <- ddply(visitsp5, .(market), summarise, sum=sum(spend))
+topCountrySpend <- head(arrange(spendPerCountry, -sum),6)
+spendTopCountryPlot <- ggplot(topCountrySpend, aes(x=market, y=sum, fill=market))+geom_bar(stat="identity",position="dodge")+labs(x="Pays",y="Dépenses (millions de livres)",fill = "Pays")
+
+plot_grid(visitsTopCountryPlot, nightsTopCountryPlot,spendTopCountryPlot,labels=c("Les 6 premiers pays à venir en plus grand nombre à Londres", "Les 6 premiers pays à venir le plus longtemps à Londres","Les 6 premiers pays à dépenser le plus à Londres"), ncol = 1, nrow = 3)
+
 
 #nombre de visiteurs par motifs de venue
 perPurpose <- ddply(visitsp5, .(market, purpose), summarise, sum2=sum(visits))
@@ -79,9 +92,7 @@ ggplot(testCountry, aes(x=purpose, y=sum, fill=market))+geom_bar(stat="identity"
 
 #nombre de visiteurs par motifs de venue et par ans
 purposePerYear <-ddply(visitsp5, .(year, purpose), summarise, sum=sum(visits))
-ggplot(purposePerYear, aes(x=year, y=sum, colour=purpose))+geom_line() + geom_point()+labs(title="Volume de visites en fonction du motif et de l'annÃ©e",x="AnnÃ©es",y="Somme",fill = "Motif")
-
-
+ggplot(purposePerYear, aes(x=year, y=sum, colour=purpose))+geom_line() + geom_point()+labs(title="Volume de visites en fonction du motif et de l'annÃ©e",x="AnnÃ©es",y="Nombres de visites", color = "Motif")
 
 ##********************************************
 #
@@ -113,13 +124,13 @@ ggplot(spendEvol, aes(x= spend, y=dur_stay)) + geom_bar(stat="identity")
 ##********************************************
 
 transport <- ddply(visitsp5, .(year, mode), summarise, sum=sum(visits))
-ggplot(transport, aes(x=year, y=sum, fill=mode))+geom_bar(stat="identity", position="dodge")+labs(title="Volume de visiteurs selon le mode de transport",x="AnnÃ©e",y="Somme",fill = "Mode")
+ggplot(transport, aes(x=year, y=sum, fill=mode))+geom_bar(stat="identity", position="dodge")+labs(title="Volume de visiteurs selon le mode de transport",x="AnnÃ©e",y="Nombre de visites",fill = "Mode")
 
 #toujours majoritairement par avion
 
 #transport utilisÃ© en fonction du pays - pour les 6 principaux pays
 transportPerCountry <- ddply(subset(visitsp5, market %in% topCountry$market), .(market, mode), summarise, sum=sum(visits))
-ggplot(transportPerCountry, aes(x=market, y=sum, fill=mode))+geom_bar(stat="identity")+labs(title="Volume de visiteurs selon le mode de transport et le pays",x="AnnÃ©e",y="Somme",fill = "Mode")
+ggplot(transportPerCountry, aes(x=market, y=sum, fill=mode))+geom_bar(stat="identity")+labs(title="Volume de visiteurs selon le mode de transport et le pays",x="Pays",y="Nombre de visites",fill = "Mode")
 
 transportPerQuarter <- ddply(visitsp5, .(quarter, mode), summarise, sum=sum(visits))
 ggplot(transportPerQuarter, aes(x=quarter, y=sum, fill=mode))+geom_bar(stat="identity", position="dodge")
@@ -127,6 +138,11 @@ ggplot(transportPerQuarter, aes(x=quarter, y=sum, fill=mode))+geom_bar(stat="ide
 visitsPerQuarter <- ddply(visitsp5, .(quarter), summarise, sum=sum(visits))
 ggplot(visitsPerQuarter, aes(x=quarter, y=sum))+geom_bar(stat="identity")
 #moins de frÃ©quentation en Q1
+
+#transport utilise en fonction du motif
+transportPerPurpose <- ddply(visitsp5, .(purpose, mode), summarise, sum=sum(visits))
+ggplot(transportPerPurpose, aes(x=purpose, y=sum, fill=mode))+geom_bar(stat="identity",position = "dodge")+labs(title="Volume de visiteurs selon le mode de transport et le motif de visite",x="Motif",y="Nombre de visites",fill = "Mode")
+
 
 #en conclusion peu de variation pour le mode de transport que ce soit en fonction des annÃ©es ou des saisons
 
@@ -138,6 +154,19 @@ ggplot(visitsPerQuarter, aes(x=quarter, y=sum))+geom_bar(stat="identity")
 
 spend <- ddply(visitsp5, .(dur_stay, spend))
 
+#**************************************
+#
+#Montant des depenses a l'annee selon plusieurs facteurs
+#
+#**************************************
+
+#Depenses en fonction de l'annee et du pays d'origine
+spendPerMarket <- ddply(subset(visitsp5,market %in% topCountrySpend$market), .(year, market), summarise, sum=sum(spend))
+ggplot(spendPerMarket, aes(x=year, y=sum, colour=market))+geom_line() + geom_point()+labs(title="Dépenses en fonction du pays d'origine et de l'année",x="Années",y="Dépenses (millions de livres)",color = "Pays d'origine")
+
+#Depenses en fonction de l'annee et du motif
+spendsPerPurposeAndYear <-ddply(visitsp5, .(year, purpose), summarise, sum=sum(spend))
+ggplot(spendsPerPurposeAndYear, aes(x=year, y=sum, colour=purpose))+geom_line() + geom_point()+labs(title="Dépenses en fonction du motif et de l'année",x="Années",y="Dépenses (millions de livres)",color = "Motif")
 
 ##***************************************************************************************
 ##
