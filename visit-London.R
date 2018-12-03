@@ -26,15 +26,15 @@ p5 <- c("2013", "2014","2015", "2016", "2017")
 visitsp5 <- subset(visitsLondon, year %in% p5)
 visitsp5 <- select(visitsp5, -sample)
 
-visitsp6 <- data.frame(visitsp5)
+visitsp7 <- data.frame(visitsp5)
 #on ajoute une colonne depense en livres par personne
-visitsp6$spendPerVisitor<-((visitsp6$spend*1000)/visitsp6$visits)
+visitsp7$spendPerVisitor<-((visitsp7$spend*1000)/visitsp7$visits)
 #on ajoute une colonne depense en livres par jour par personne
-visitsp6$spendPerDayPerVisitor<-((visitsp6$spend*1000)/visitsp6$nights)
+visitsp7$spendPerDayPerVisitor<-((visitsp7$spend*1000)/visitsp7$nights)
 
 glimpse(visitsp5)
 
-visitsp6 <- select (visitsp6, -area, -quarter, -nights, -spend)
+visitsp7 <- select (visitsp7, -area, -quarter, -nights, -spend)
 visitsp6 <- mutate(visitsp6, purpose = factor(purpose, level=c("Study", "Miscellaneous", "VFR", "Holiday", "Business")))
 visitsp6 <- mutate(visitsp6, mode = factor(mode, level=c("Sea", "Tunnel", "Air")))
 
@@ -112,11 +112,11 @@ getAverageSpendPerDayPerVisitor <- function (mydata) {
   return (sum(mydata$spendPerDayPerVisitor*mydata$visits)/sum(mydata$visits))
 }
 
-spendPerVisitorPerCountry  <- ddply(visitsp6, .(market), getAverageSpendPerVisitor)
+spendPerVisitorPerCountry  <- ddply(visitsp7, .(market), getAverageSpendPerVisitor)
 topCountryspendPerVisitor<- head(arrange(spendPerVisitorPerCountry, -V1),6)
 p4 <- ggplot(topCountryspendPerVisitor, aes(x=market, y=V1, fill=market))+geom_bar(stat="identity",position="dodge")+labs(x="Pays",y="Livres",fill = "Pays")
 
-spendPerDayPerVisitorPerCountry  <- ddply(visitsp6, .(market), getAverageSpendPerDayPerVisitor)
+spendPerDayPerVisitorPerCountry  <- ddply(visitsp7, .(market), getAverageSpendPerDayPerVisitor)
 topCountryspendPerDayPerVisitor<- head(arrange(spendPerDayPerVisitorPerCountry, -V1),6)
 p5 <- ggplot(topCountryspendPerDayPerVisitor, aes(x=market, y=V1, fill=market))+geom_bar(stat="identity",position="dodge")+labs(x="Pays",y="Livres",fill = "Pays")
 
@@ -211,15 +211,15 @@ spend <- ddply(visitsp5, .(dur_stay, spend))
 #**************************************
 
 #Facteur: Duree
-spendPerDuration <- ddply(visitsp6, .(year, dur_stay),  getAverageSpendPerDayPerVisitor)
+spendPerDuration <- ddply(visitsp7, .(year, dur_stay),  getAverageSpendPerDayPerVisitor)
 ggplot(spendPerDuration, aes(x=year, y=V1, colour=dur_stay))+geom_line() + geom_point()+labs(title="Depenses en fonction la duree et de l'annee",x="Annees",y="Livres",color = "Duree")
 
 #Facteur: Mode
-spendPerDuration <- ddply(visitsp6, .(year, mode),  getAverageSpendPerDayPerVisitor)
+spendPerDuration <- ddply(visitsp7, .(year, mode),  getAverageSpendPerDayPerVisitor)
 ggplot(spendPerDuration, aes(x=year, y=V1, colour=mode))+geom_line() + geom_point()+labs(title="Depenses en fonction du mode de transport et de l'annee",x="Annees",y="Livres",color = "Transport")
 
 #Facteur: Motif
-spendsPerPurpose <- ddply(visitsp6, .(year, purpose),  getAverageSpendPerDayPerVisitor)
+spendsPerPurpose <- ddply(visitsp7, .(year, purpose),  getAverageSpendPerDayPerVisitor)
 ggplot(spendsPerPurpose, aes(x=year, y=V1, colour=purpose))+geom_line() + geom_point()+labs(title="Depenses en fonction du motif et de l'annee",x="Annees",y="Livres",color = "Motif")
 
 
