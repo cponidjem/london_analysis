@@ -12,45 +12,60 @@ library(readxl)
 library(cowplot)
 library(randomForest)
 
-
 visitsLondon <- read_excel("international-visitors-london2.xlsx", sheet=5)
-
 View(visitsLondon)
 
-p1 <- c("2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017")
-p2 <- c("2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009")
-p3 <- c("2015", "2016", "2017")
-p4 <- c("2012", "2013", "2014")
 p5 <- c("2013", "2014","2015", "2016", "2017")
+topCountryName <- c("USA", "France", "Germany", "Spain", "Italy", "Netherlands",  
+                    "Belgium","Irish Republic", "Sweden", "Australia")
+
 
 visitsp5 <- subset(visitsLondon, year %in% p5)
-visitsp5 <- select(visitsp5, -sample)
+visitsp5 <- select(visitsp5, -sample, -area)
+glimpse(visitsp5)
+
+#test pour les dépenses par jour par personnes
+visitsp6 <- data.frame(subset(visitsp5, market %in% topCountryName))
+visitsp6$spend=(visitsp6$spend)*1000
+visitsp6$spendDaysVisitor=(visitsp6$spend)/(visitsp6$nights)
+
+visitsp6$nightsVisitor=(visitsp6$nights)/(visitsp6$visits)
+
 
 visitsp7 <- data.frame(visitsp5)
 #on ajoute une colonne depense en livres par personne
 visitsp7$spendPerVisitor<-((visitsp7$spend*1000)/visitsp7$visits)
 #on ajoute une colonne depense en livres par jour par personne
 visitsp7$spendPerDayPerVisitor<-((visitsp7$spend*1000)/visitsp7$nights)
-
-glimpse(visitsp5)
-
 visitsp7 <- select (visitsp7, -area, -quarter, -nights, -spend)
+
+#vérifier nos chiffres avec les chiffres de journaux
+test4 <- ddply(subset(visitsp6, year=="2015"), .(year), summarise, sum=sum(visits))
+#response : 18.58115 millions
+#d'après le figaro 18,6 millions 
+#c'est cohérent
+
+#randomForest : regarder les variables impactant la dépense
+visitsp6 <- select (visitsp6, -quarter, -dur_stay, -spend, -visits, -nights)
 visitsp6 <- mutate(visitsp6, purpose = factor(purpose, level=c("Study", "Miscellaneous", "VFR", "Holiday", "Business")))
 visitsp6 <- mutate(visitsp6, mode = factor(mode, level=c("Sea", "Tunnel", "Air")))
+visitsp6 <- mutate(visitsp6, market = factor(market, level=c("USA", "France", "Germany", "Spain", "Italy", "Netherlands",  
+                                                         "Belgium","Irish Republic", "Sweden", "Australia")))
+visitsp6.rf <- randomForest(spendDaysVisitor ~ ., data=visitsp6, na.action=na.roughfix, localImp=TRUE)
+print(fit1)
+varImpPlot(fit1)
+#on observe que le mode de transport et l'année n'influent pas sur les dépenses
 
-length(visitsp5)
+#prediction des dépenses selon un profil donné
+newdata=data.frame(year=2013,market="Spain", mode="Air",purpose="Business",spendDaysVisitor="",
+                   nightsVisitor=10)
+visitsp6.predict <- predict(visitsp6.rf, newdata, type="response", norm.votes=TRUE, predict.all=FALSE, proximity=FALSE, nodes=FALSE) 
 
 
 ##Volume de visites selon les années de 2013 à 2017
 dataPerYear <- ddply(visitsp5, .(year), summarise, sum=sum(visits, na.rm=T))
 ggplot(dataPerYear, aes(x=year, y=sum))+geom_bar(stat="identity", fill="steelblue")+ggtitle("Volume de visiteurs selon les années")+xlab("Année")+ylab("Nombre de visiteurs")
 
-
-#randomForest
-#diviser la dépense par visiteurs
-fit1 <- randomForest(spendDay ~ ., data=visitsp6, na.action=na.roughfix, localImp=TRUE)
-print(fit1)
-varImpPlot(fit1)
 
 ##*************************************
 #
