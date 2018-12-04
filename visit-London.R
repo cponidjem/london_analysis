@@ -146,9 +146,9 @@ nightsPerCountry  <- ddply(visitsp5, .(market), summarise, sum=sum(nights))
 topCountryNights <- head(arrange(nightsPerCountry, -sum),6)
 p2 <- ggplot(topCountryNights, aes(x=market, y=sum, fill=market))+geom_bar(stat="identity",position="dodge")+labs(x="Pays",y="Nombre de nuits",fill = "Pays")
 
-spendPerCountry  <- ddply(visitsp5, .(market), summarise, sum=sum(spend))
+spendPerCountry  <- ddply(visitsp6, .(market), summarise, sum=sum(spend))
 topCountrySpend <- head(arrange(spendPerCountry, -sum),6)
-p3 <- ggplot(topCountrySpend, aes(x=market, y=sum, fill=market))+geom_bar(stat="identity",position="dodge")+labs(x="Pays",y="Millions de livres",fill = "Pays")
+p3 <- ggplot(topCountrySpend, aes(x=market, y=sum, fill=market))+geom_bar(stat="identity",position="dodge")+labs(x="Pays",y="Livres",fill = "Pays")
 
 #get average spend per visitor on a set or subset
 getAverageSpendPerVisitor <- function (mydata) {
@@ -169,7 +169,7 @@ topCountryspendPerDayPerVisitor<- head(arrange(spendPerDayPerVisitorPerCountry, 
 p5 <- ggplot(topCountryspendPerDayPerVisitor, aes(x=market, y=V1, fill=market))+geom_bar(stat="identity",position="dodge")+labs(x="Pays",y="Livres",fill = "Pays")
 
 
-plot_grid(p1, p2,p3, p4, p5,labels=c("Les 6 premiers pays en nombre de visiteurs", "Les 6 premiers pays en nombre nuits","Les 6 premiers pays en d?pense totale","Les 6 premiers pays en d?pense par personne","Les 6 premiers pays en d?pense par jour, par personne"), ncol = 1, nrow = 5)
+plot_grid(p1, p2,p3, p4, p5,labels=c("Les 6 premiers pays en nombre de visiteurs", "Les 6 premiers pays en nombre nuits","Les 6 premiers pays en depense totale","Les 6 premiers pays en depense par personne","Les 6 premiers pays en depense par jour, par personne"), ncol = 1, nrow = 5)
 
 
 #nombre de visiteurs par motifs de venue
