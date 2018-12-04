@@ -47,6 +47,7 @@ visitsp7 <- select (visitsp7, -quarter, -nights, -spend)
 #  RandomForest
 #
 ##********************************************
+
 moreVisits <- ddply(subset(visitsp5), .(market), summarise, sum=sum(visits))
 moreVisits <- tail(arrange(moreVisits, sum),40)
 View(moreVisits$market)
@@ -133,7 +134,7 @@ p1 <- ggplot(topCountry, aes(x=market, y=sum, fill=market))+geom_bar(stat="ident
 
 #**************************************************************
 #
-#  topCOuntry pour le nombres de nuits passees et leS depenses 
+#  top country pour le nombres de nuits passees et les depenses 
 #
 #*************************************************************
 
@@ -163,7 +164,7 @@ getAverageSpendPerDayPerVisitor <- function (mydata) {
   return (sum(mydata$spendPerDayPerVisitor*mydata$visits)/sum(mydata$visits))
 }
 
-# dépense des visiteurs par Pays
+# dépense des visiteurs par pays
 spendPerVisitorPerCountry  <- ddply(visitsp7, .(market), getAverageSpendPerVisitor)
 topCountryspendPerVisitor<- head(arrange(spendPerVisitorPerCountry, -V1),7)
 p4 <- ggplot(topCountryspendPerVisitor, aes(x=market, y=V1, fill=market))+geom_bar(stat="identity",position="dodge")+labs(x="Pays",y="Livres",fill = "Pays")
@@ -222,28 +223,28 @@ plot_grid(g7, g6,g5, g4,g3,labels=c("2017", "2016","2015", "2014", "2013"), ncol
 #
 ##**********************************
 
-#nombre de visiteurs par motifs de venue
+# nombre de visiteurs par motif de venue
 perPurpose <- ddply(visitsp5, .(market, purpose), summarise, sum2=sum(visits))
 ggplot(perPurpose, aes(x=purpose, y=sum2, fill=purpose))+geom_bar(stat="identity",position="dodge")+labs(title="Volume de visites en fonction du motif",x="Motif",y="Somme",fill = "Motif")
 
-#nombre de visiteur par motifs pour les pays dans le topCountry
+# nombre de visiteur par motif pour les pays dans le topCountry
 testCountry <- ddply(subset(visitsp5, market %in% topCountryName), .(market, purpose), summarise, sum=sum(visits))
 ggplot(testCountry, aes(x=purpose, y=sum, fill=market))+geom_bar(stat="identity", position="dodge")
 
-#nombre de visiteurs par motifs de venue et par ans
+# nombre de visiteurs par motif de venue et par ans
 purposePerYear <-ddply(visitsp5, .(year, purpose), summarise, sum=sum(visits))
 ggplot(purposePerYear, aes(x=year, y=sum, colour=purpose))+geom_line() + geom_point()+labs(title="Volume de visites en fonction du motif et de l'année",x="Années",y="Nombres de visites", color = "Motif")
 
 
-#évolution de la part des gens venu pour la travail de 2010 à 2017
+# évolution de la part des gens venu pour la travail de 2010 à 2017
 data1 <- subset(visits, year %in% p1)
 businessData <- ddply(subset(data1, purpose == "Business"), .(year), summarise, sum=sum(sample))
 ggplot(businessData, aes(x=year, y=sum)) + geom_point(size=4) + geom_line(size=2)
 ggplot(businessData, aes(x=year, y=sum)) +geom_bar(stat="identity")
-#il y a vraiment une différence entre les point et les barres pour la visualisation
-#baisse du au brexit ? il faudrait que regarder le pourcentage, voir si c'est significatif
+# il y a vraiment une différence entre les point et les barres pour la visualisation
+# baisse du au brexit ? il faudrait que regarder le pourcentage, voir si c'est significatif
 
-#évolution pour les vacances
+# évolution pour les vacances
 holidayData <- ddply(subset(data1, purpose == "Holiday"), .(year), summarise, sum=sum(sample))
 ggplot(holidayData, aes(x=year, y=sum, fill=year)) +geom_bar(stat="identity")
 # ça semple rester stable
@@ -258,9 +259,9 @@ ggplot(holidayData, aes(x=year, y=sum, fill=year)) +geom_bar(stat="identity")
 
 transport <- ddply(visitsp5, .(year, mode), summarise, sum=sum(visits))
 ggplot(transport, aes(x=year, y=sum, fill=mode))+geom_bar(stat="identity", position="dodge")+labs(title="Volume de visiteurs selon le mode de transport",x="Année",y="Nombre de visites",fill = "Mode")
-#toujours majoritairement par avion
+# toujours majoritairement par avion
 
-#transport utilisé en fonction du pays - pour les 6 principaux pays
+# transport utilisé en fonction du pays - pour les 6 principaux pays
 transportPerCountry <- ddply(subset(visitsp5, market %in% topCountry$market), .(market, mode), summarise, sum=sum(visits))
 ggplot(transportPerCountry, aes(x=market, y=sum, fill=mode))+geom_bar(stat="identity")+labs(title="Volume de visiteurs selon le mode de transport et le pays",x="Pays",y="Nombre de visites",fill = "Mode")
 
@@ -268,7 +269,7 @@ transportPerQuarter <- ddply(visitsp5, .(quarter, mode), summarise, sum=sum(visi
 ggplot(transportPerQuarter, aes(x=quarter, y=sum, fill=mode))+geom_bar(stat="identity", position="dodge")
 # stable selon les saisons
 
-#transport utilise en fonction du motif
+# transport utilise en fonction du motif
 transportPerPurpose <- ddply(visitsp5, .(purpose, mode), summarise, sum=sum(visits))
 ggplot(transportPerPurpose, aes(x=purpose, y=sum, fill=mode))+geom_bar(stat="identity", 
               position="fill")+labs(title=
@@ -283,17 +284,17 @@ ggplot(transportPerPurpose, aes(x=purpose, y=sum, fill=mode))+geom_bar(stat="ide
 #
 #*************************************************************************************
 
-#Facteur: Duree
+# Facteur: Duree
 spendPerDuration <- ddply(visitsp7, .(year, dur_stay),  getAverageSpendPerDayPerVisitor)
 ggplot(spendPerDuration, aes(x=year, y=V1, colour=dur_stay))+geom_line() + geom_point()+
   labs(title="Depenses en fonction la duree et de l'annee",x="Annees",y="Livres",color = "Duree")
 
-#Facteur: Mode
+# Facteur: Mode
 spendPerDuration <- ddply(visitsp7, .(year, mode),  getAverageSpendPerDayPerVisitor)
 ggplot(spendPerDuration, aes(x=year, y=V1, colour=mode))+geom_line() + geom_point()+
   labs(title="Depenses en fonction du mode de transport et de l'annee",x="Annees",y="Livres",color = "Transport")
 
-#Facteur: Motif
+# Facteur: Motif
 spendsPerPurpose <- ddply(visitsp7, .(year, purpose),  getAverageSpendPerDayPerVisitor)
 ggplot(spendsPerPurpose, aes(x=year, y=V1, colour=purpose))+geom_line() + geom_point()+
   labs(title="Depenses en fonction du motif et de l'annee",x="Annees",y="Livres",color = "Motif")
@@ -334,7 +335,7 @@ getQuarter <- function(x) {
 crimes <- cbind(crimes,quarter=getQuarter(crimes$month))
 
 # Decommenter la ligne suivante pour voir les grandes categories de crime
-#levels(factor(crimes$major_category))
+# levels(factor(crimes$major_category))
 
 # Nombres de vols par quart d'annee de 2008 a 2016
 theft <- subset(crimes,(major_category=="Burglary"|major_category=="Robbery"|major_category=="Theft and Handling"),select=c(major_category,value,year,quarter))
