@@ -1,9 +1,11 @@
-##*****************************************
-##
-##international visitors London
-##
-##*****************************************
-library(cowplot)
+#*****************************************
+#
+# London international visitors
+# Cindy Ponidjem & Lucie Helcmanocki
+#
+#*****************************************
+
+# importation des librairies
 library(ggplot2)
 library(plyr)
 library(dplyr)
@@ -12,14 +14,21 @@ library(readxl)
 library(cowplot)
 library(randomForest)
 
+#importation du fichier excel
 visitsLondon <- read_excel("international-visitors-london2.xlsx", sheet=5)
 View(visitsLondon)
 
-p5 <- c("2013", "2014","2015", "2016", "2017")
+
+# définissions des périodes & autres vecteurs
+p5    <- c("2013", "2014","2015", "2016", "2017")
+p1318 <- c("2013", "2014","2015", "2016", "2017", "2018")
+
 topCountryName <- c("USA", "France", "Germany", "Spain", "Italy", "Netherlands",  
                     "Belgium","Irish Republic", "Sweden", "Australia")
 
 
+
+# découpage du dataset
 visitsp5 <- subset(visitsLondon, year %in% p5)
 visitsp5 <- select(visitsp5, -sample, -area)
 glimpse(visitsp5)
@@ -32,25 +41,21 @@ visitsp6$spendDaysVisitor=(visitsp6$spend)/(visitsp6$nights)
 visitsp6$nightsVisitor=(visitsp6$nights)/(visitsp6$visits)
 
 
-visitsp7 <- data.frame(visitsp5)
-#on ajoute une colonne depense en livres par personne
-visitsp7$spendPerVisitor<-((visitsp7$spend*1000)/visitsp7$visits)
-#on ajoute une colonne depense en livres par jour par personne
-visitsp7$spendPerDayPerVisitor<-((visitsp7$spend*1000)/visitsp7$nights)
-visitsp7 <- select (visitsp7, -area, -quarter, -nights, -spend)
 
-#vérifier nos chiffres avec les chiffres de journaux
-test4 <- ddply(subset(visitsp6, year=="2015"), .(year), summarise, sum=sum(visits))
-#response : 18.58115 millions
-#d'après le figaro 18,6 millions 
-#c'est cohérent
+
+
+##********************************************
+#
+#  RandomForest
+#
+##********************************************
 
 #randomForest : regarder les variables impactant la dépense
 visitsp6 <- select (visitsp6, -quarter, -dur_stay, -spend, -visits, -nights)
 visitsp6 <- mutate(visitsp6, purpose = factor(purpose, level=c("Study", "Miscellaneous", "VFR", "Holiday", "Business")))
 visitsp6 <- mutate(visitsp6, mode = factor(mode, level=c("Sea", "Tunnel", "Air")))
 visitsp6 <- mutate(visitsp6, market = factor(market, level=c("USA", "France", "Germany", "Spain", "Italy", "Netherlands",  
-                                                         "Belgium","Irish Republic", "Sweden", "Australia")))
+                                                             "Belgium","Irish Republic", "Sweden", "Australia")))
 model_randomForest <- randomForest(spendDaysVisitor ~ ., data=visitsp6, na.action=na.roughfix, localImp=TRUE)
 print(fit1)
 varImpPlot(fit1)
@@ -59,19 +64,47 @@ varImpPlot(fit1)
 #prediction des dépenses selon un profil donné
 newdata=data.frame(year=2013,market="Spain", mode="Air",purpose="Business",spendDaysVisitor=154,
                    nightsVisitor=10)
-
 pred_randomForest <- predict(model_randomForest,newdata, type = "response")
 
-##Volume de visites selon les années de 2013 à 2017
+
+visitsp7 <- data.frame(visitsp5)
+#on ajoute une colonne depense en livres par personne
+visitsp7$spendPerVisitor<-((visitsp7$spend*1000)/visitsp7$visits)
+
+#on ajoute une colonne depense en livres par jour par personne
+visitsp7$spendPerDayPerVisitor<-((visitsp7$spend*1000)/visitsp7$nights)
+visitsp7 <- select (visitsp7, -area, -quarter, -nights, -spend)
+
+
+
+
+#*************************************************************
+#
+#  Evolution du volume de visiteurs à Londres de 2013 à 2017
+#
+#*************************************************************
+
+
+# Volume de visites selon les années de 2013 à 2017
 dataPerYear <- ddply(visitsp5, .(year), summarise, sum=sum(visits, na.rm=T))
-ggplot(dataPerYear, aes(xq=year, y=sum))+geom_bar(stat="identity", fill="steelblue")+ggtitle("Volume de visiteurs selon les années")+xlab("Année")+ylab("Nombre de visiteurs")
+ggplot(dataPerYear, aes(x=year, y=sum))+geom_bar(stat="identity", fill="steelblue")+ggtitle(
+  "Volume de visiteurs par an de 2013 à 2017")+xlab("Année")+ylab("Nombre de visiteurs (en millier)")
 
+# Par saison (quarter)
+dataPerQuarter <- ddply(subset(visits, year %in% p1318), .(year, quarter), summarise, sum=sum(visits))
+ggplot(dataPerQuarter, aes(x=year, y=sum, fill=quarter))+geom_bar(stat="identity", position="dodge")+ggtitle(
+  "Volume de visiteurs de 2013 à 2017 par quarter")+xlab("Année")+ylab("Nombre de visiteurs(en milliers)")
 
-##*************************************
+# Comparaison de nos chiffres avec les chiffres des journaux sur 2015
+test4 <- ddply(subset(visitsp6, year=="2015"), .(year), summarise, sum=sum(visits))
+#response : 18.58115 millions
+#d'après le figaro 18,6 millions, c'est cohérent
+
+#*************************************
 #
 #  Profil des visiteurs
 #
-##*************************************
+#*************************************
 
 #par année
 #2017
@@ -95,11 +128,11 @@ g4 <- ggplot(head(arrange(profil14, -sum), 6), aes(x=market, y=sum, fill=market)
 profil13 <- ddply(subset(visitsp5, year %in%"2013"), .(market), summarise, sum=sum(visits))
 g3 <- ggplot(head(arrange(profil13, -sum), 6), aes(x=market, y=sum, fill=market))+geom_bar(stat="identity",position="dodge")
 
-
+#visualisation sur une seule planche
 plot_grid(g7, g6,g5, g4,g3,labels=c("2017", "2016","2015", "2014", "2013"), ncol = 3, nrow = 2)
 
-#évolution du volume d'Australien en visite à Londres
-Australie <- 
+
+
 
 #top des pays d'origine des visiteursles plus nombreux sur 2013-2017
 perCountry <- ddply(visitsp5, .(market), summarise, sum=sum(visits))
@@ -136,7 +169,7 @@ topCountryspendPerDayPerVisitor<- head(arrange(spendPerDayPerVisitorPerCountry, 
 p5 <- ggplot(topCountryspendPerDayPerVisitor, aes(x=market, y=V1, fill=market))+geom_bar(stat="identity",position="dodge")+labs(x="Pays",y="Livres",fill = "Pays")
 
 
-plot_grid(p1, p2,p3, p4, p5,labels=c("Les 6 premiers pays en nombre de visiteurs", "Les 6 premiers pays en nombre nuits","Les 6 premiers pays en d�pense totale","Les 6 premiers pays en d�pense par personne","Les 6 premiers pays en d�pense par jour, par personne"), ncol = 1, nrow = 5)
+plot_grid(p1, p2,p3, p4, p5,labels=c("Les 6 premiers pays en nombre de visiteurs", "Les 6 premiers pays en nombre nuits","Les 6 premiers pays en d?pense totale","Les 6 premiers pays en d?pense par personne","Les 6 premiers pays en d?pense par jour, par personne"), ncol = 1, nrow = 5)
 
 
 #nombre de visiteurs par motifs de venue
@@ -210,7 +243,6 @@ ggplot(transportPerPurpose, aes(x=purpose, y=sum, fill=mode))+geom_bar(stat="ide
 #**************************************
 #
 #Montant des dépenses par jour
-
 #
 #**************************************
 
