@@ -259,15 +259,17 @@ spend <- ddply(visitsp5, .(dur_stay, spend))
 
 #Facteur: Duree
 spendPerDuration <- ddply(visitsp7, .(year, dur_stay),  getAverageSpendPerDayPerVisitor)
-ggplot(spendPerDuration, aes(x=year, y=V1, colour=dur_stay))+geom_line() + geom_point()+labs(title="Depenses en fonction la duree et de l'annee",x="Annees",y="Livres",color = "Duree")
+p6 <- ggplot(spendPerDuration, aes(x=year, y=V1, colour=dur_stay))+geom_line() + geom_point()+labs(x="Annees",y="Livres",color = "Duree")
 
 #Facteur: Mode
 spendPerDuration <- ddply(visitsp7, .(year, mode),  getAverageSpendPerDayPerVisitor)
-ggplot(spendPerDuration, aes(x=year, y=V1, colour=mode))+geom_line() + geom_point()+labs(title="Depenses en fonction du mode de transport et de l'annee",x="Annees",y="Livres",color = "Transport")
+p7 <- ggplot(spendPerDuration, aes(x=year, y=V1, colour=mode))+geom_line() + geom_point()+labs(x="Annees",y="Livres",color = "Transport")
 
 #Facteur: Motif
 spendsPerPurpose <- ddply(visitsp7, .(year, purpose),  getAverageSpendPerDayPerVisitor)
-ggplot(spendsPerPurpose, aes(x=year, y=V1, colour=purpose))+geom_line() + geom_point()+labs(title="Depenses en fonction du motif et de l'annee",x="Annees",y="Livres",color = "Motif")
+p8 <- ggplot(spendsPerPurpose, aes(x=year, y=V1, colour=purpose))+geom_line() + geom_point()+labs(x="Annees",y="Livres",color = "Motif")
+
+plot_grid(p6, p7, p8,labels=c("Depenses par jour, par personne en fonction de la duree et de l'annee", "Depenses par jour, par personne en fonction du transport et de l'annee", "Depenses par jour, par personne en fonction du motif et de l'annee"), ncol = 1, nrow = 3)
 
 
 ##***************************************************************************************
