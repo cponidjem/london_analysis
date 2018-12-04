@@ -45,20 +45,20 @@ visitsp6 <- mutate(visitsp6, purpose = factor(purpose, level=c("Study", "Miscell
 visitsp6 <- mutate(visitsp6, mode = factor(mode, level=c("Sea", "Tunnel", "Air")))
 visitsp6 <- mutate(visitsp6, market = factor(market, level=c("USA", "France", "Germany", "Spain", "Italy", "Netherlands",  
                                                          "Belgium","Irish Republic", "Sweden", "Australia")))
-visitsp6.rf <- randomForest(spendDaysVisitor ~ ., data=visitsp6, na.action=na.roughfix, localImp=TRUE)
+model_randomForest <- randomForest(spendDaysVisitor ~ ., data=visitsp6, na.action=na.roughfix, localImp=TRUE)
 print(fit1)
 varImpPlot(fit1)
 #on observe que le mode de transport et l'année n'influent pas sur les dépenses
 
 #prediction des dépenses selon un profil donné
-newdata=data.frame(year=2013,market="Spain", mode="Air",purpose="Business",spendDaysVisitor="",
+newdata=data.frame(year=2013,market="Spain", mode="Air",purpose="Business",spendDaysVisitor=154,
                    nightsVisitor=10)
-visitsp6.predict <- predict(visitsp6.rf, newdata, type="response", norm.votes=TRUE, predict.all=FALSE, proximity=FALSE, nodes=FALSE) 
 
+pred_randomForest <- predict(model_randomForest,newdata, type = "response")
 
 ##Volume de visites selon les années de 2013 à 2017
 dataPerYear <- ddply(visitsp5, .(year), summarise, sum=sum(visits, na.rm=T))
-ggplot(dataPerYear, aes(x=year, y=sum))+geom_bar(stat="identity", fill="steelblue")+ggtitle("Volume de visiteurs selon les années")+xlab("Année")+ylab("Nombre de visiteurs")
+ggplot(dataPerYear, aes(xq=year, y=sum))+geom_bar(stat="identity", fill="steelblue")+ggtitle("Volume de visiteurs selon les années")+xlab("Année")+ylab("Nombre de visiteurs")
 
 
 ##*************************************
