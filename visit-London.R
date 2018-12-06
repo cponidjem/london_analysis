@@ -13,6 +13,7 @@ library(gdata)
 library(readxl)
 library(cowplot)
 library(randomForest)
+library(JLutils)
 
 #importation du fichier excel
 visitsLondon <- read_excel("international-visitors-london2.xlsx", sheet=5)
@@ -72,11 +73,11 @@ varImpPlot(fit1)
 
 
 
-#*************************************************************
+#*************************************************************************************
 #
-#  Evolution du volume de visiteurs a Londres de 2013 a 2017
+#  Evolution du volume de visiteurs a Londres de 2013 a 2017 et leur dépenses totales
 #
-#*************************************************************
+#*************************************************************************************
 
 
 # Volume de visites selon les annees de 2013 a 2017
@@ -103,13 +104,6 @@ test4 <- ddply(subset(visitsp5, year=="2015"), .(year), summarise, sum=sum(visit
 #d'apres le figaro 18,6 millions, c'est coherent
 
 
-#*********************************************************
-#
-#  Evolution globale de la somme depensee par les visiteur par an 
-#
-#*********************************************************
-
-
 # Evolution de la somme depensee par les visiteurs par annees sur 2013-2017
 spendEvol <- ddply(visitsp5, .(year), summarise, sum=sum(spend))
 spendEvol$sum <- spendEvol$sum/1000
@@ -119,13 +113,7 @@ ggplot(spendEvol, aes(x= year, y=sum)) +
   ggtitle("Depenses par annee sur 2013-2017")+
   labs(x="Annees",y="Milliards de livres")
 
-# Somme depensee en fonction du motif par annee sur 2013-2017 
-spendPerPurpose <- ddply(visitsp5, .(year, purpose), summarise, sum=sum(spend,na.rm=T))
-ggplot(spendPerPurpose, aes(x=year, y=sum, fill=purpose))+
-  geom_bar(stat="identity", position="fill")+
-  labs(x="Annees",y="Proportion des depenses",fill="Motif")+
-  ggtitle("Depenses en fonction du motif par annee sur 2013-2017")
-# les vacances rapportent le plus, suit le business et le VFR
+
 
 
 #********************************************************
@@ -172,7 +160,7 @@ p2 <- ggplot(topCountryNights, aes(x=market, y=sum, fill=market))+
 # nuits par personnes et par pays
 
 
-# Top country pour la somme des dÃ©pense
+# Top country pour la somme des depense
 spendPerCountry  <- ddply(visitsp5, .(market), summarise, sum=sum(spend))
 topCountrySpend <- head(arrange(spendPerCountry, -sum),7)
 p3 <- ggplot(topCountrySpend, aes(x=market, y=sum, fill=market))+
@@ -245,14 +233,33 @@ ggplot(spendPerDuration, aes(x=year, y=V1, colour=mode))+
   geom_line() + geom_point()+
   labs(title="Depenses en fonction du mode de transport et de l'annee",x="Annees",y="Livres",color = "Transport")
 
-# Facteur: Motif
+
+#********** Par motif ***************
+
+# Proportion des depenses en fonction du motif et par annee sur 2013-2017 
+spendPerPurpose <- ddply(visitsp5, .(year, purpose), summarise, sum=sum(spend,na.rm=T))
+d1 <- ggplot(spendPerPurpose, aes(x=year, y=sum, fill=purpose))+
+  geom_bar(stat="identity", position="fill")+
+  labs(x="Annees",y="Proportion des depenses",fill="Motif")
+# les vacances rapportent le plus, suit le business et le VFR
+
+
+# Somme depensee en fonction du motif par annee par jour et par personne sur 2013-2017
 spendsPerPurpose <- ddply(visitsp7, .(year, purpose),  getAverageSpendPerDayPerVisitor)
-ggplot(spendsPerPurpose, aes(x=year, y=V1, colour=purpose))+
+d2 <- ggplot(spendsPerPurpose, aes(x=year, y=V1, colour=purpose))+
   geom_line(size=1) + geom_point(size=2)+
-  labs(title="Depenses par jour par personne en fonction du motif et de l'annee",
-       x="Annees",y="Depenses en livres",color = "Motif")
+  labs(x="Annees",y="Depenses en livres",color = "Motif")
 
 
+# nombre de visiteurs par motif de venue et par ans
+purposePerYear <-ddply(visitsp5, .(year, purpose), summarise, sum=sum(visits))
+d3 <- ggplot(purposePerYear, aes(x=year, y=sum, colour=purpose))+
+  geom_line(size=1)+geom_point(size=2)+
+  labs(x="Annees",y="Nombres de visites (en milliers)", color = "Motif")
+
+
+d <- plot_grid(d3, d2, labels=c("Volume de visites par motif et annee","Depenses par jour et personne par motif et annee"), ncol = 1, nrow = 2)
+plot_grid(d, d1, labels=c("","Proportion des depenses par motif et annee"), ncol = 2, nrow = 1)
 
 ##**********************************
 #
@@ -271,12 +278,12 @@ testCountry <- ddply(subset(visitsp5, market %in% topCountryName), .(market, pur
 ggplot(testCountry, aes(x=purpose, y=sum, fill=market))+
   geom_bar(stat="identity", position="dodge")
 
-# nombre de visiteurs par motif de venue et par ans
-purposePerYear <-ddply(visitsp5, .(year, purpose), summarise, sum=sum(visits))
-ggplot(purposePerYear, aes(x=year, y=sum, colour=purpose))+
-  geom_line(size=1.5)+geom_point(size=2.5)+
-  labs(title="Volume de visites en fonction du motif et de l'annee",
-       x="Annees",y="Nombres de visites (en milliers)", color = "Motif")
+
+##***********************************************
+#
+#  Evolution des visites par motifs et par années
+#
+##***********************************************
 
 
 # Evolution de la part des gens venu pour la travail de 2010 a 2017
@@ -336,7 +343,6 @@ plot_grid(g7, g6,g5, g4,g3,labels=c("2017", "2016","2015", "2014", "2013"), ncol
 
 
 
-
 ##********************************************
 ##
 ##Evolution des moyens de transports dans le temps
@@ -367,6 +373,13 @@ ggplot(transportPerPurpose, aes(x=purpose, y=sum, fill=mode))+
   geom_bar(stat="identity", position="fill")+
   labs(title="Volume de visiteurs selon le mode de transport et le motif de visite",
   x="Motif",y="Nombre de visites",fill = "Mode")
+
+
+
+
+
+
+
 
 
 ##***************************************************************************************
