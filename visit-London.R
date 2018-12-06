@@ -290,18 +290,16 @@ ggplot(testCountry, aes(x=purpose, y=sum, fill=market))+
 ##***********************************************
 
 
-# Evolution de la part des gens venu pour la travail de 2010 a 2017
-data1 <- subset(visits, year %in% p1)
-businessData <- ddply(subset(data1, purpose == "Business"), .(year), summarise, sum=sum(sample))
-ggplot(businessData, aes(x=year, y=sum)) + geom_point(size=4) + geom_line(size=2)
+# Evolution de la part des gens venu pour la travail de 2013 a 2017
+data1 <- visitsp5
+businessData <- ddply(subset(data1, purpose == "Business"), .(year), summarise, sum=sum(visits))
 ggplot(businessData, aes(x=year, y=sum)) + geom_bar(stat="identity")
-# il y a vraiment une difference entre les point et les barres pour la visualisation
-# baisse du au brexit ? il faudrait que regarder le pourcentage, voir si c'est significatif
+# pas d'impact visible du brexit en 2017
 
 # Evolution pour les vacances
-holidayData <- ddply(subset(data1, purpose == "Holiday"), .(year), summarise, sum=sum(sample))
+holidayData <- ddply(subset(data1, purpose == "Holiday"), .(year), summarise, sum=sum(visits))
 ggplot(holidayData, aes(x=year, y=sum, fill=year)) + geom_bar(stat="identity")
-# ca semple rester stable
+# augmente avec la croissance génerale du tourisme 
 
 
 
