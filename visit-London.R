@@ -16,7 +16,7 @@ library(randomForest)
 library(JLutils)
 
 #importation du fichier excel
-visitsLondon <- read_excel("international-visitors-london2.xlsx", sheet=5)
+visitsLondon <- read.table(file="international-visitors-london-raw.csv",header=TRUE,sep=",")
 View(visitsLondon)
 
 
@@ -39,6 +39,7 @@ glimpse(visitsp5)
 # test pour les depenses en livres par personnes
 visitsp7 <- data.frame(visitsp5)
 visitsp7$spendPerVisitor<-((visitsp7$spend*1000)/visitsp7$visits)
+visitsp7$nightsPerVisitor<-visitsp7$nights/visitsp7$visits
 visitsp7 <- select (visitsp7, -quarter, -nights, -spend)
 
 
@@ -146,30 +147,6 @@ p1 <- ggplot(topCountry, aes(x=market, y=sum, fill=market))+
 #
 #*************************************************************
 
-# qu'en est-il du top country pour le nombres de nuits passees et leS depenses ?
-
-# Top country pour le nombre de nuits passee par visiteur
-nightsPerCountry  <- ddply(visitsp5, .(market), summarise, sum=sum(nights))
-topCountryNights <- head(arrange(nightsPerCountry, -sum),7)
-p2 <- ggplot(topCountryNights, aes(x=market, y=sum, fill=market))+
-  scale_fill_brewer(palette="PuBuGn")+
-  geom_bar(stat="identity",position="dodge")+
-  labs(x="Pays",y="Nombre de nuits (en milliers)",fill = "Pays")
-#  ggtitle("Les 7 premiers pays en nombre nuits")
-
-# nuits par personnes et par pays
-
-
-# Top country pour la somme des depense
-spendPerCountry  <- ddply(visitsp5, .(market), summarise, sum=sum(spend))
-topCountrySpend <- head(arrange(spendPerCountry, -sum),7)
-p3 <- ggplot(topCountrySpend, aes(x=market, y=sum, fill=market))+
-  scale_fill_brewer(palette="Paired")+
-  geom_bar(stat="identity",position="dodge")+
-  labs(x="Pays",y="Depenses (en milliers de livres)",fill = "Pays")
-# ggtitle("Les 7 premiers pays en depense totale sur 2013-2017")
-
-
 #*************** Fonctions *****************
 
 #get average spend per visitor on a set or subset
@@ -182,7 +159,40 @@ getAverageSpendPerDayPerVisitor <- function (mydata) {
   return (sum(mydata$spendPerDayPerVisitor*mydata$visits)/sum(mydata$visits))
 }
 
+getAverageNbNightsPerVisitor <- function (mydata) {
+  return (sum(mydata$nightsPerVisitor*mydata$visits)/sum(mydata$visits))
+}
+
 #*************** EndFonctions ***************
+
+# qu'en est-il du top country pour le nombres de nuits passees et leS depenses ?
+
+# Top country pour le nombre totale de nuits passees
+nightsPerCountry  <- ddply(visitsp5, .(market), summarise, sum=sum(nights))
+topCountryNights <- head(arrange(nightsPerCountry, -sum),7)
+p2 <- ggplot(topCountryNights, aes(x=market, y=sum, fill=market))+
+  scale_fill_brewer(palette="PuBuGn")+
+  geom_bar(stat="identity",position="dodge")+
+  labs(x="Pays",y="Nombre de nuits (en milliers)",fill = "Pays")
+#  ggtitle("Les 7 premiers pays en nombre nuits")
+
+# Top country pour le nombre moyen de nuits passees par visiteur
+nightsPerVisitorPerCountry  <- ddply(visitsp7, .(market), getAverageNbNightsPerVisitor)
+topCountryNightsPerVisitor <- head(arrange(nightsPerVisitorPerCountry, -V1),7)
+p6 <- ggplot(topCountryNightsPerVisitor, aes(x=market, y=V1, fill=market))+
+  scale_fill_brewer(palette="PuBuGn")+
+  geom_bar(stat="identity",position="dodge")+
+  labs(x="Pays",y="Nombre de nuits (en milliers)",fill = "Pays")
+#  ggtitle("Les 7 premiers pays en nombre nuits")
+
+# Top country pour la somme des depense
+spendPerCountry  <- ddply(visitsp5, .(market), summarise, sum=sum(spend))
+topCountrySpend <- head(arrange(spendPerCountry, -sum),7)
+p3 <- ggplot(topCountrySpend, aes(x=market, y=sum, fill=market))+
+  scale_fill_brewer(palette="Paired")+
+  geom_bar(stat="identity",position="dodge")+
+  labs(x="Pays",y="Depenses (en millions de livres)",fill = "Pays")
+# ggtitle("Les 7 premiers pays en depense totale sur 2013-2017")
 
 # depense des visiteurs par pays
 spendPerVisitorPerCountry  <- ddply(visitsp7, .(market), getAverageSpendPerVisitor)
@@ -198,7 +208,7 @@ topCountryspendPerDayPerVisitor<- head(arrange(spendPerDayPerVisitorPerCountry, 
 p5 <- ggplot(topCountryspendPerDayPerVisitor, aes(x=market, y=V1, fill=market))+
   scale_fill_brewer(palette="YlOrRd")+
   geom_bar(stat="identity",position="dodge")+
-  labs(x="Pays",y="Depenses en livres",fill = "Pays")
+  labs(x="Pays",y="Depenses (en livres)",fill = "Pays")
 
 
 #on affiche les resultats precedents
@@ -209,9 +219,8 @@ plot_grid(p1, p2,p3, p4, p5,labels=c(
   "Les 7 premiers pays en depense par personne",
   "Les 7 premiers pays en depense par jour, par personne"), ncol = 1, nrow = 5)
 
-plot_grid(p3, p2, p5,labels=c("Les 7 premiers pays en depense totale sur 2013-2017",
-                              "Les 7 premiers pays en nombre nuits",
-                              "Les 7 premiers pays en depense par jour et par personne"), ncol = 1, nrow = 3)
+plot_grid(p3, p5,labels=c("Les 7 premiers pays en depense totale sur 2013-2017",
+                          "Les 7 premiers pays en depenses par jour et personne sur 2013-2017"), ncol = 1, nrow = 2)
 
 
 
