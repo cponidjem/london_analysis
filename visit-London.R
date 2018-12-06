@@ -86,8 +86,8 @@ v1 <- ggplot(dataPerYear, aes(x=year, y=sum))+
   xlab("Annee")+ylab("Nombre de visiteurs (en milliers)")
 # ggtitle("Volume de visiteurs par an de 2013 a 2017")+
 
-# Par saison (quarter)
-dataPerQuarter <- ddply(subset(visitsp5, year %in% p1318), .(year, quarter), summarise, sum=sum(visits, na.rm=T))
+# Par trimestre (quarter)
+dataPerQuarter <- ddply(subset(visitsLondon, year %in% p1318), .(year, quarter), summarise, sum=sum(visits, na.rm=T))
 v2 <- ggplot(dataPerQuarter, aes(x=year, y=sum, fill=quarter))+
   geom_bar(stat="identity", position="dodge")+
   labs(x="Annees",y="Nombre de visiteurs(en milliers)")
@@ -116,15 +116,15 @@ spendEvol$sum <- spendEvol$sum/1000
 ggplot(spendEvol, aes(x= year, y=sum)) + 
   geom_bar(stat="identity", fill="steelblue")+
   geom_text(aes(label=sum), vjust=1.6, color="white", size=3.5)+
-  ggtitle("Somme depensee par les visiteurs par annee sur 2013-2017")+
-  labs(x="Annees",y="depenses en milliards")
+  ggtitle("Depenses par annee sur 2013-2017")+
+  labs(x="Annees",y="Milliards de livres")
 
 # Somme depensee en fonction du motif par annee sur 2013-2017 
 spendPerPurpose <- ddply(visitsp5, .(year, purpose), summarise, sum=sum(spend,na.rm=T))
 ggplot(spendPerPurpose, aes(x=year, y=sum, fill=purpose))+
   geom_bar(stat="identity", position="fill")+
-  labs(x="Annees",y="depenses en millions")+
-  ggtitle("Somme depensee en fonction du motif par annee sur 2013-2017")
+  labs(x="Annees",y="Proportion des depenses",fill="Motif")+
+  ggtitle("Depenses en fonction du motif par annee sur 2013-2017")
 # les vacances rapportent le plus, suit le business et le VFR
 
 
