@@ -339,10 +339,10 @@ plot_grid(g7, g6,g5, g4,g3,labels=c("2017", "2016","2015", "2014", "2013"), ncol
 transport <- ddply(visitsp5, .(year, mode), summarise, sum=sum(visits))
 ggplot(transport, aes(x=year, y=sum, fill=mode))+
   geom_bar(stat="identity", position="dodge")+
-  labs(title="Volume de visiteurs selon le mode de transport",x="AnnÃ©e",y="Nombre de visites",fill = "Mode")
+  labs(title="Volume de visiteurs selon le mode de transport",x="Annee",y="Nombre de visites",fill = "Mode")
 # toujours majoritairement par avion
 
-# transport utilisÃ© en fonction du pays - pour les 6 principaux pays
+# transport utilise en fonction du pays - pour les 6 principaux pays
 transportPerCountry <- ddply(subset(visitsp5, market %in% topCountry$market), .(market, mode), summarise, sum=sum(visits))
 ggplot(transportPerCountry, aes(x=market, y=sum, fill=mode))+
   geom_bar(stat="identity")+
@@ -351,7 +351,7 @@ ggplot(transportPerCountry, aes(x=market, y=sum, fill=mode))+
 transportPerQuarter <- ddply(visitsp5, .(quarter, mode), summarise, sum=sum(visits))
 ggplot(transportPerQuarter, aes(x=quarter, y=sum, fill=mode))+
   geom_bar(stat="identity", position="dodge")
-# stable selon les saisons
+# stable selon les trimestres
 
 # transport utilise en fonction du motif
 transportPerPurpose <- ddply(visitsp5, .(purpose, mode), summarise, sum=sum(visits))
@@ -360,34 +360,18 @@ ggplot(transportPerPurpose, aes(x=purpose, y=sum, fill=mode))+
   labs(title="Volume de visiteurs selon le mode de transport et le motif de visite",x="Motif",y="Nombre de visites",fill = "Mode")
 
 
-#Facteur: Duree
-spendPerDuration <- ddply(visitsp7, .(year, dur_stay),  getAverageSpendPerDayPerVisitor)
-p6 <- ggplot(spendPerDuration, aes(x=year, y=V1, colour=dur_stay))+geom_line() + geom_point()+labs(x="Annees",y="Livres",color = "Duree")
-
-#Facteur: Mode
-spendPerDuration <- ddply(visitsp7, .(year, mode),  getAverageSpendPerDayPerVisitor)
-p7 <- ggplot(spendPerDuration, aes(x=year, y=V1, colour=mode))+geom_line() + geom_point()+labs(x="Annees",y="Livres",color = "Transport")
-
-#Facteur: Motif
-spendsPerPurpose <- ddply(visitsp7, .(year, purpose),  getAverageSpendPerDayPerVisitor)
-p8 <- ggplot(spendsPerPurpose, aes(x=year, y=V1, colour=purpose))+geom_line() + geom_point()+labs(x="Annees",y="Livres",color = "Motif")
-
-plot_grid(p6, p7, p8,labels=c("Depenses par jour, par personne en fonction de la duree et de l'annee", "Depenses par jour, par personne en fonction du transport et de l'annee", "Depenses par jour, par personne en fonction du motif et de l'annee"), ncol = 1, nrow = 3)
-
-
-
 ##***************************************************************************************
 ##
 ## Chercher une correlation entre le nombre de crimes et l'affluence de touristes a Londres 
 ##
 ##**************************************************************************************
 
-# Afluence de touristes par quart d'annee de 2008 a 2016
+# Afluence de touristes par trimestre de 2008 a 2016
 perQuarter <- ddply(visits, .(year,quarter),summarise, sum=sum(sample))
 perQuarter2008_2016 <- subset(perQuarter,(year>=2008&year<=2016))
 p <- ggplot(perQuarter2008_2016, aes(x=factor(year), y=sum, fill=quarter))+
   geom_bar(stat="identity",position="dodge")+
-  labs(title="Afluence de touristes par quart d'annee \n de 2008 ? 2016",x ="Annee", y = "Nombre de touristes")
+  labs(title="Afluence de touristes par trimestre \n de 2008 a 2016",x ="Annee", y = "Nombre de touristes")
 
 # Recuperer le dataset sur les crimes a Londres
 crimes <- read.table(file="london_crime_by_lsoa.csv",header=TRUE,sep=",")
@@ -410,12 +394,12 @@ theft <- subset(crimes,(major_category=="Burglary"|major_category=="Robbery"|maj
 theftPerQuarter <- ddply(theft, .(year,quarter), summarise, sum=sum(value))
 p <- ggplot(theftPerQuarter, aes(x=factor(year), y=sum, fill=quarter))+
   geom_bar(stat="identity",position="dodge")+
-  labs(title="Nombres de vols par quart d'ann?e \n de 2008 ? 2016",x ="Ann?e", y = "Nombre de vols")
+  labs(title="Nombres de vols par trimestre \n de 2008 a 2016",x ="Annee", y = "Nombre de vols")
 
-# Nombres de violences contre la personne de 2008 a 2016
+# Nombres de violences (incluent violences sexuelles) contre la personne de 2008 a 2016
 violenceAgainstPerson <- subset(crimes,(major_category=="Violence Against the Person"|major_category=="Sexual Offences"),select=c(major_category,value,year,quarter))
 violenceAgainstPersonPerQuarter <- ddply(violenceAgainstPerson, .(year,quarter), summarise, sum=sum(value))
 p <- ggplot(violenceAgainstPersonPerQuarter, aes(x=factor(year), y=sum, fill=quarter))+
   geom_bar(stat="identity",position="dodge")+
-  labs(title="Nombres de cas violences contre la personne \n par quart d'ann?e  de 2008 ? 2016",x ="Ann?e", y = "Nombre de cas")
+  labs(title="Nombres de cas de violences contre la personne \n par trimestre de 2008 a 2016",x ="Annee", y = "Nombre de cas")
 
