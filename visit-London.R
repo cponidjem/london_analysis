@@ -13,7 +13,6 @@ library(gdata)
 library(readxl)
 library(cowplot)
 library(randomForest)
-library(JLutils)
 
 #importation du fichier excel
 visitsLondon <- read_excel("international-visitors-london2.xlsx", sheet=5)
@@ -35,6 +34,8 @@ visitsp5 <- select(visitsp5, -sample, -area)
 visitsp5$spendPerDayPerVisitor<-((visitsp5$spend*1000)/visitsp5$nights)
 glimpse(visitsp5)
 
+test7 <- ddply(visitsp5, .(year), summarise, sum=sum(visits))
+mean(test7$sum)
 
 # test pour les depenses en livres par personnes
 visitsp7 <- data.frame(visitsp5)
@@ -227,12 +228,6 @@ ggplot(spendPerDuration, aes(x=year, y=V1, colour=dur_stay))+
   geom_line() + geom_point()+
   labs(title="Depenses en fonction la duree et de l'annee",x="Annees",y="Livres",color = "Duree")
 
-# Facteur: Mode
-spendPerDuration <- ddply(visitsp7, .(year, mode),  getAverageSpendPerDayPerVisitor)
-ggplot(spendPerDuration, aes(x=year, y=V1, colour=mode))+
-  geom_line() + geom_point()+
-  labs(title="Depenses en fonction du mode de transport et de l'annee",x="Annees",y="Livres",color = "Transport")
-
 
 #********** Par motif ***************
 
@@ -257,9 +252,10 @@ d3 <- ggplot(purposePerYear, aes(x=year, y=sum, colour=purpose))+
   geom_line(size=1)+geom_point(size=2)+
   labs(x="Annees",y="Nombres de visites (en milliers)", color = "Motif")
 
+plot_grid(d3, d1, d2, labels = c("A", "B", "C"), ncol = 2)
 
-d <- plot_grid(d3, d2, labels=c("Volume de visites par motif et annee","Depenses par jour et personne par motif et annee"), ncol = 1, nrow = 2)
-plot_grid(d, d1, labels=c("","Proportion des depenses par motif et annee"), ncol = 2, nrow = 1)
+d <- plot_grid(d3, d2, labels=c("Volume de visites par motif et annee","Depenses par personne/jour par motif et annee"), ncol = 1, nrow = 2)
+plot_grid(d1, d, labels=c("Proportion des depenses par motif et annee",""), ncol = 2, nrow = 1)
 
 ##**********************************
 #
@@ -350,9 +346,9 @@ plot_grid(g7, g6,g5, g4,g3,labels=c("2017", "2016","2015", "2014", "2013"), ncol
 ##********************************************
 
 transport <- ddply(visitsp5, .(year, mode), summarise, sum=sum(visits))
-ggplot(transport, aes(x=year, y=sum, fill=mode))+
+t1 <- ggplot(transport, aes(x=year, y=sum, fill=mode))+
   geom_bar(stat="identity", position="dodge")+
-  labs(title="Volume de visiteurs selon le mode de transport",x="Annee",y="Nombre de visites",fill = "Mode")
+  labs(title ="Volume de visiteurs selon le mode de transport",x="Annee",y="Nombre de visites",fill = "Mode")
 # toujours majoritairement par avion
 
 # transport utilise en fonction du pays - pour les 6 principaux pays
@@ -371,10 +367,19 @@ ggplot(transportPerQuarter, aes(x=quarter, y=sum, fill=mode))+
 transportPerPurpose <- ddply(visitsp5, .(purpose, mode), summarise, sum=sum(visits))
 ggplot(transportPerPurpose, aes(x=purpose, y=sum, fill=mode))+
   geom_bar(stat="identity", position="fill")+
-  labs(title="Volume de visiteurs selon le mode de transport et le motif de visite",
-  x="Motif",y="Nombre de visites",fill = "Mode")
+  labs(title="Pourcentage de visiteurs selon le mode de transport et le motif de visite",
+  x="Motif",y="Pourcentage de visiteurs",fill = "Mode")
 
 
+# Facteur: Mode
+spendPerDuration <- ddply(visitsp7, .(year, mode),  getAverageSpendPerDayPerVisitor)
+t2 <- ggplot(spendPerDuration, aes(x=year, y=V1, colour=mode))+
+  geom_line(size=1) + geom_point(size=2)+
+  labs(title="Depenses en moyenne par jour et par personnes
+       en fonction du mode de transport et de l'annee", 
+       x="Annee",y="Livres",color = "Transport")
+
+plot_grid(t1, t2, ncol=2, nrow=1)
 
 
 
