@@ -14,7 +14,7 @@ library(readxl)
 library(cowplot)
 library(randomForest)
 
-#importation du fichier excel
+#importation du fichier csv
 visitsLondon <- read.table(file="international-visitors-london-raw.csv",header=TRUE,sep=",")
 View(visitsLondon)
 
