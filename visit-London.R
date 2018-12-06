@@ -259,7 +259,7 @@ d3 <- ggplot(purposePerYear, aes(x=year, y=sum, colour=purpose))+
 
 
 d <- plot_grid(d3, d2, labels=c("Volume de visites par motif et annee","Depenses par jour et personne par motif et annee"), ncol = 1, nrow = 2)
-plot_grid(d, d1, labels=c("","Proportion des depenses par motif et annee"), ncol = 2, nrow = 1)
+plot_grid(d1, d, labels=c("Proportion des depenses par motif et annee",""), ncol = 2, nrow = 1)
 
 ##**********************************
 #
