@@ -19,7 +19,7 @@ visitsLondon <- read_excel("international-visitors-london2.xlsx", sheet=5)
 View(visitsLondon)
 
 
-# définissions des périodes & autres vecteurs
+# dÃ©finissions des pÃ©riodes & autres vecteurs
 p5    <- c("2013", "2014","2015", "2016", "2017")
 p1318 <- c("2013", "2014","2015", "2016", "2017", "2018")
 
@@ -27,7 +27,7 @@ topCountryName <- c("USA", "France", "Germany", "Spain", "Italy", "Netherlands",
                     "Irish Republic")
 
 
-# découpage du dataset pour la période 2013-2017
+# dÃ©coupage du dataset pour la pÃ©riode 2013-2017
 visitsp5 <- subset(visitsLondon, year %in% p5)
 visitsp5 <- select(visitsp5, -sample, -area)
 # on ajoute une colonne depense en livres par jour par personne
@@ -35,7 +35,7 @@ visitsp5$spendPerDayPerVisitor<-((visitsp5$spend*1000)/visitsp5$nights)
 glimpse(visitsp5)
 
 
-# test pour les dépenses en livres par personnes
+# test pour les dÃ©penses en livres par personnes
 visitsp7 <- data.frame(visitsp5)
 visitsp7$spendPerVisitor<-((visitsp7$spend*1000)/visitsp7$visits)
 visitsp7 <- select (visitsp7, -quarter, -nights, -spend)
@@ -52,7 +52,7 @@ moreVisits <- ddply(subset(visitsp5), .(market), summarise, sum=sum(visits))
 moreVisits <- tail(arrange(moreVisits, sum),40)
 View(moreVisits$market)
 
-# randomForest : regarder les variables impactant la dépense
+# randomForest : regarder les variables impactant la dÃ©pense
 visitsp6 <- data.frame(subset(visitsp5))
 visitsp6$nightPerVisitor <- (visitsp6$nights/visitsp6$visits) 
 visitsp6 <- select (visitsp6, -quarter,-dur_stay, -spend, -visits, -nights)
@@ -67,63 +67,63 @@ visitsp6 <- mutate(visitsp6, market = factor(market, level=moreVisits$market))
 model_randomForest <- randomForest(spendPerDayPerVisitor ~ ., data=visitsp6, na.action=na.roughfix, localImp=TRUE)
 print(fit1)
 varImpPlot(fit1)
-# le nombre de nuits influerait le plus sur la dépense journalière
-# on observe que le mode de transport et l'année n'influent pas sur les dépenses
+# le nombre de nuits influerait le plus sur la dÃ©pense journaliÃ¨re
+# on observe que le mode de transport et l'annÃ©e n'influent pas sur les dÃ©penses
 
 
 
 #*************************************************************
 #
-#  Evolution du volume de visiteurs à Londres de 2013 à 2017
+#  Evolution du volume de visiteurs Ã  Londres de 2013 Ã  2017
 #
 #*************************************************************
 
 
-# Volume de visites selon les années de 2013 à 2017
+# Volume de visites selon les annÃ©es de 2013 Ã  2017
 dataPerYear <- ddply(visitsp5, .(year), summarise, sum=sum(visits, na.rm=T))
 v1 <- ggplot(dataPerYear, aes(x=year, y=sum))+
   geom_bar(stat="identity", fill="steelblue")+
-  xlab("Année")+ylab("Nombre de visiteurs (en milliers)")
-# ggtitle("Volume de visiteurs par an de 2013 à 2017")+
+  xlab("AnnÃ©e")+ylab("Nombre de visiteurs (en milliers)")
+# ggtitle("Volume de visiteurs par an de 2013 Ã  2017")+
 
 # Par saison (quarter)
 dataPerQuarter <- ddply(subset(visits, year %in% p1318), .(year, quarter), summarise, sum=sum(visits))
 v2 <- ggplot(dataPerQuarter, aes(x=year, y=sum, fill=quarter))+
   geom_bar(stat="identity", position="dodge")+
-  labs(x="Années",y="Nombre de visiteurs(en milliers)")
-# ggtitle("Volume de visiteurs de 2013 à 2018 par quarter")+
+  labs(x="AnnÃ©es",y="Nombre de visiteurs(en milliers)")
+# ggtitle("Volume de visiteurs de 2013 Ã  2018 par quarter")+
 
-plot_grid(v1, v2, labels=c("Volume de visiteurs par an de 2013 à 2017", 
-"Volume de visiteurs de 2013 à 2018 par quarter"), ncol = 2, nrow = 1)
+plot_grid(v1, v2, labels=c("Volume de visiteurs par an de 2013 Ã  2017", 
+"Volume de visiteurs de 2013 Ã  2018 par quarter"), ncol = 2, nrow = 1)
   
 
 # Comparaison de nos chiffres avec les chiffres des journaux sur 2015
 test4 <- ddply(subset(visitsp5, year=="2015"), .(year), summarise, sum=sum(visits))
 #resultat : 18.58115 millions
-#d'après le figaro 18,6 millions, c'est cohérent
+#d'aprÃ¨s le figaro 18,6 millions, c'est cohÃ©rent
 
 
 #*********************************************************
 #
-#  Evolution globale de la somme dépensée par les visiteur par an 
+#  Evolution globale de la somme dÃ©pensÃ©e par les visiteur par an 
 #
 #*********************************************************
 
 
-# évolution de la somme dépensée par les visiteurs par années sur 2013-2017
+# Ã©volution de la somme dÃ©pensÃ©e par les visiteurs par annÃ©es sur 2013-2017
 spendEvol <- ddply(visitsp5, .(year), summarise, sum=sum(spend))
 spendEvol$sum <- spendEvol$sum/1000
 ggplot(spendEvol, aes(x= year, y=sum)) + 
   geom_bar(stat="identity", fill="steelblue")+
   geom_text(aes(label=sum), vjust=1.6, color="white", size=3.5)+
-  ggtitle("Somme dépensée par les visiteurs par années sur 2013-2017")+
-  labs(x="dépenses en millions",y="Années")
+  ggtitle("Somme dÃ©pensÃ©e par les visiteurs par annÃ©es sur 2013-2017")+
+  labs(x="dÃ©penses en millions",y="AnnÃ©es")
 
-# Somme dépensée en fonction du motif par année sur 2013-2017 
+# Somme dÃ©pensÃ©e en fonction du motif par annÃ©e sur 2013-2017 
 spendPerPurpose <- ddply(visitsp5, .(year, purpose, spend), summarise, sum=sum(visits))
 ggplot(spendPerPurpose, aes(x=year, y=sum, fill=purpose))+
   geom_bar(stat="identity", position="fill")+
-  ggtitle("Somme dépensée en fonction du motif par année sur 2013-2017")
+  ggtitle("Somme dÃ©pensÃ©e en fonction du motif par annÃ©e sur 2013-2017")
 # les vacances rapportent le plus, suit le business et le VFR
 
 
@@ -140,14 +140,14 @@ topCountry <- head(arrange(perCountry, -sum),7)
 ggplot(perCountry, aes(x=market, y=sum, colour = factor(market %in% topCountryName), size=sum))+
         geom_point(stat="identity",position="dodge")+
         labs(x="Pays",y="Nombre de visiteurs (en milliers)",fill = "Pays")+
-        ggtitle("Nombre de visiteurs par pays sur la période 2013-2017")
+        ggtitle("Nombre de visiteurs par pays sur la pÃ©riode 2013-2017")
 
-# on a ainsi pu determiner les 6 pays amenant le plus de de visiteurs sur la période
+# on a ainsi pu determiner les 6 pays amenant le plus de de visiteurs sur la pÃ©riode
 
 p1 <- ggplot(topCountry, aes(x=market, y=sum, fill=market))+
   geom_bar(stat="identity",position="dodge")+
   labs(x="Pays",y="Nombre de visiteurs (en milliers)",fill = "Pays")
-#ggtitle("Les 7 premiers pays à venir en plus grand nombre à Londres")
+#ggtitle("Les 7 premiers pays Ã  venir en plus grand nombre Ã  Londres")
 
 
 
@@ -157,14 +157,9 @@ p1 <- ggplot(topCountry, aes(x=market, y=sum, fill=market))+
 #
 #*************************************************************
 
-<<<<<<< HEAD
-spendPerCountry  <- ddply(visitsp6, .(market), summarise, sum=sum(spend))
-topCountrySpend <- head(arrange(spendPerCountry, -sum),6)
-p3 <- ggplot(topCountrySpend, aes(x=market, y=sum, fill=market))+geom_bar(stat="identity",position="dodge")+labs(x="Pays",y="Livres",fill = "Pays")
-=======
 # qu'en est-il du top country pour le nombres de nuits passees et leS depenses ?
 
-# Top country pour le nombre de nuits passées
+# Top country pour le nombre de nuits passÃ©es
 nightsPerCountry  <- ddply(visitsp5, .(market), summarise, sum=sum(nights))
 topCountryNights <- head(arrange(nightsPerCountry, -sum),7)
 p2 <- ggplot(topCountryNights, aes(x=market, y=sum, fill=market))+
@@ -173,18 +168,17 @@ p2 <- ggplot(topCountryNights, aes(x=market, y=sum, fill=market))+
   labs(x="Pays",y="Nombre de nuits (en milliers)",fill = "Pays")
 #  ggtitle("Les 7 premiers pays en nombre nuits")
 
-# Top country pour la somme des dépense
+# Top country pour la somme des dÃ©pense
 spendPerCountry  <- ddply(visitsp5, .(market), summarise, sum=sum(spend))
 topCountrySpend <- head(arrange(spendPerCountry, -sum),7)
 p3 <- ggplot(topCountrySpend, aes(x=market, y=sum, fill=market))+
   scale_fill_brewer(palette="Paired")+
   geom_bar(stat="identity",position="dodge")+
-  labs(x="Pays",y="Dépenses (en milliers de livres)",fill = "Pays")
+  labs(x="Pays",y="Depenses (en milliers de livres)",fill = "Pays")
 # ggtitle("Les 7 premiers pays en depense totale sur 2013-2017")
 
 
 #*************** Fonctions *****************
->>>>>>> e4ff208aa96203ba4ce87c9364fbd185d42972c4
 
 #get average spend per visitor on a set or subset
 getAverageSpendPerVisitor <- function (mydata) {
@@ -196,12 +190,12 @@ getAverageSpendPerDayPerVisitor <- function (mydata) {
   return (sum(mydata$spendPerDayPerVisitor*mydata$visits)/sum(mydata$visits))
 }
 
-# dépense des visiteurs par pays
+# dÃ©pense des visiteurs par pays
 spendPerVisitorPerCountry  <- ddply(visitsp7, .(market), getAverageSpendPerVisitor)
 topCountryspendPerVisitor<- head(arrange(spendPerVisitorPerCountry, -V1),7)
 p4 <- ggplot(topCountryspendPerVisitor, aes(x=market, y=V1, fill=market))+
   geom_bar(stat="identity",position="dodge")+
-  labs(x="Pays",y="Dépenses en livres",fill = "Pays")
+  labs(x="Pays",y="DÃ©penses en livres",fill = "Pays")
 # ggtitle("Les 7 premiers pays en depenses par personne")
 
 # Les 7 premiers pays en depense par jour, par personne
@@ -210,13 +204,10 @@ topCountryspendPerDayPerVisitor<- head(arrange(spendPerDayPerVisitorPerCountry, 
 p5 <- ggplot(topCountryspendPerDayPerVisitor, aes(x=market, y=V1, fill=market))+
   scale_fill_brewer(palette="YlOrRd")+
   geom_bar(stat="identity",position="dodge")+
-  labs(x="Pays",y="Dépenses en livres",fill = "Pays")
+  labs(x="Pays",y="DÃ©penses en livres",fill = "Pays")
 
 
-<<<<<<< HEAD
-plot_grid(p1, p2,p3, p4, p5,labels=c("Les 6 premiers pays en nombre de visiteurs", "Les 6 premiers pays en nombre nuits","Les 6 premiers pays en depense totale","Les 6 premiers pays en depense par personne","Les 6 premiers pays en depense par jour, par personne"), ncol = 1, nrow = 5)
-=======
-#on affiche les résultats précedents
+#on affiche les rÃ©sultats prÃ©cedents
 plot_grid(p1, p2,p3, p4, p5,labels=c(
   "Les 7 premiers pays en nombre de visiteurs", 
   "Les 7 premiers pays en nombre nuits",
@@ -225,7 +216,6 @@ plot_grid(p1, p2,p3, p4, p5,labels=c(
   "Les 7 premiers pays en depense par jour, par personne"), ncol = 1, nrow = 5)
 
 plot_grid(p3, p2, p5,labels=c("Les 7 premiers pays en depense totale sur 2013-2017","Les 7 premiers pays en nombre nuits","Les 7 premiers pays en depense par jour et par personne"), ncol = 1, nrow = 3)
->>>>>>> e4ff208aa96203ba4ce87c9364fbd185d42972c4
 
 
 
@@ -252,7 +242,7 @@ spendsPerPurpose <- ddply(visitsp7, .(year, purpose),  getAverageSpendPerDayPerV
 ggplot(spendsPerPurpose, aes(x=year, y=V1, colour=purpose))+
   geom_line(size=1) + geom_point(size=2)+
   labs(title="Depenses par jour par personne en fonction du motif et de l'annee",
-       x="Annees",y="Dépenses en livres",color = "Motif")
+       x="Annees",y="DÃ©penses en livres",color = "Motif")
 
 
 
@@ -277,32 +267,32 @@ ggplot(testCountry, aes(x=purpose, y=sum, fill=market))+
 purposePerYear <-ddply(visitsp5, .(year, purpose), summarise, sum=sum(visits))
 ggplot(purposePerYear, aes(x=year, y=sum, colour=purpose))+
   geom_line(size=1.5)+geom_point(size=2.5)+
-  labs(title="Volume de visites en fonction du motif et de l'année",
-       x="Années",y="Nombres de visites (en milliers)", color = "Motif")
+  labs(title="Volume de visites en fonction du motif et de l'annÃ©e",
+       x="AnnÃ©es",y="Nombres de visites (en milliers)", color = "Motif")
 
 
-# évolution de la part des gens venu pour la travail de 2010 à 2017
+# Ã©volution de la part des gens venu pour la travail de 2010 Ã  2017
 data1 <- subset(visits, year %in% p1)
 businessData <- ddply(subset(data1, purpose == "Business"), .(year), summarise, sum=sum(sample))
 ggplot(businessData, aes(x=year, y=sum)) + geom_point(size=4) + geom_line(size=2)
 ggplot(businessData, aes(x=year, y=sum)) + geom_bar(stat="identity")
-# il y a vraiment une différence entre les point et les barres pour la visualisation
+# il y a vraiment une diffÃ©rence entre les point et les barres pour la visualisation
 # baisse du au brexit ? il faudrait que regarder le pourcentage, voir si c'est significatif
 
-# évolution pour les vacances
+# Ã©volution pour les vacances
 holidayData <- ddply(subset(data1, purpose == "Holiday"), .(year), summarise, sum=sum(sample))
 ggplot(holidayData, aes(x=year, y=sum, fill=year)) + geom_bar(stat="identity")
-# ça semple rester stable
+# Ã§a semple rester stable
 
 
 
 #******************************************************************************
 #
-#  On regarde l'évolution par année des 6 premiers pays en nombre de visiteurs
+#  On regarde l'Ã©volution par annÃ©e des 6 premiers pays en nombre de visiteurs
 #
 #******************************************************************************
 
-#on souhaite regarder si le top country par nombre de visiteurs précedent varie en zoomant par années
+#on souhaite regarder si le top country par nombre de visiteurs prÃ©cedent varie en zoomant par annÃ©es
 
 #2017
 profil17 <- ddply(subset(visitsp5, year %in%"2017"), .(market), summarise, sum=sum(visits))
@@ -334,7 +324,7 @@ g3 <- ggplot(head(arrange(profil13, -sum), 6), aes(x=market, y=sum, fill=market)
 plot_grid(g7, g6,g5, g4,g3,labels=c("2017", "2016","2015", "2014", "2013"), ncol = 3, nrow = 2)
 
 # les premiers pays USA, France, Allemagne, Espagne, Italie ne changent pas
-# l'Australie a disparue du top après 2013 en faveur des Pays-bas, ensuite remplacé en 2015 par l'Irlande
+# l'Australie a disparue du top aprÃ¨s 2013 en faveur des Pays-bas, ensuite remplacÃ© en 2015 par l'Irlande
 
 
 
@@ -348,10 +338,10 @@ plot_grid(g7, g6,g5, g4,g3,labels=c("2017", "2016","2015", "2014", "2013"), ncol
 transport <- ddply(visitsp5, .(year, mode), summarise, sum=sum(visits))
 ggplot(transport, aes(x=year, y=sum, fill=mode))+
   geom_bar(stat="identity", position="dodge")+
-  labs(title="Volume de visiteurs selon le mode de transport",x="Année",y="Nombre de visites",fill = "Mode")
+  labs(title="Volume de visiteurs selon le mode de transport",x="AnnÃ©e",y="Nombre de visites",fill = "Mode")
 # toujours majoritairement par avion
 
-# transport utilisé en fonction du pays - pour les 6 principaux pays
+# transport utilisÃ© en fonction du pays - pour les 6 principaux pays
 transportPerCountry <- ddply(subset(visitsp5, market %in% topCountry$market), .(market, mode), summarise, sum=sum(visits))
 ggplot(transportPerCountry, aes(x=market, y=sum, fill=mode))+
   geom_bar(stat="identity")+
@@ -369,12 +359,6 @@ ggplot(transportPerPurpose, aes(x=purpose, y=sum, fill=mode))+
   labs(title="Volume de visiteurs selon le mode de transport et le motif de visite",x="Motif",y="Nombre de visites",fill = "Mode")
 
 
-
-
-
-
-
-<<<<<<< HEAD
 #Facteur: Duree
 spendPerDuration <- ddply(visitsp7, .(year, dur_stay),  getAverageSpendPerDayPerVisitor)
 p6 <- ggplot(spendPerDuration, aes(x=year, y=V1, colour=dur_stay))+geom_line() + geom_point()+labs(x="Annees",y="Livres",color = "Duree")
@@ -388,10 +372,7 @@ spendsPerPurpose <- ddply(visitsp7, .(year, purpose),  getAverageSpendPerDayPerV
 p8 <- ggplot(spendsPerPurpose, aes(x=year, y=V1, colour=purpose))+geom_line() + geom_point()+labs(x="Annees",y="Livres",color = "Motif")
 
 plot_grid(p6, p7, p8,labels=c("Depenses par jour, par personne en fonction de la duree et de l'annee", "Depenses par jour, par personne en fonction du transport et de l'annee", "Depenses par jour, par personne en fonction du motif et de l'annee"), ncol = 1, nrow = 3)
-=======
 
-
->>>>>>> e4ff208aa96203ba4ce87c9364fbd185d42972c4
 
 
 ##***************************************************************************************
