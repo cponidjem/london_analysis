@@ -120,12 +120,11 @@ ggplot(spendEvol, aes(x= year, y=sum)) +
   labs(x="Annees",y="depenses en milliards")
 
 # Somme depensee en fonction du motif par annee sur 2013-2017 
-spendPerPurpose <- ddply(visitsp5, .(year, purpose, spend), summarise, sum=sum(visits,na.rm=T))
-spendPerPurpose$sum <- spendPerPurpose$sum
+spendPerPurpose <- ddply(visitsp5, .(year, purpose), summarise, sum=sum(spend,na.rm=T))
 ggplot(spendPerPurpose, aes(x=year, y=sum, fill=purpose))+
   geom_bar(stat="identity", position="fill")+
   labs(x="Annees",y="depenses en millions")+
-  ggtitle("Somme depensÃ©e en fonction du motif par annÃ©e sur 2013-2017")
+  ggtitle("Somme depensee en fonction du motif par annee sur 2013-2017")
 # les vacances rapportent le plus, suit le business et le VFR
 
 
@@ -161,14 +160,17 @@ p1 <- ggplot(topCountry, aes(x=market, y=sum, fill=market))+
 
 # qu'en est-il du top country pour le nombres de nuits passees et leS depenses ?
 
-# Top country pour le nombre de nuits passÃ©es
+# Top country pour le nombre de nuits passee par visiteur
 nightsPerCountry  <- ddply(visitsp5, .(market), summarise, sum=sum(nights))
 topCountryNights <- head(arrange(nightsPerCountry, -sum),7)
 p2 <- ggplot(topCountryNights, aes(x=market, y=sum, fill=market))+
-  scale_fill_brewer(palette="Dark2")+
+  scale_fill_brewer(palette="PuBuGn")+
   geom_bar(stat="identity",position="dodge")+
   labs(x="Pays",y="Nombre de nuits (en milliers)",fill = "Pays")
 #  ggtitle("Les 7 premiers pays en nombre nuits")
+
+# nuits par personnes et par pays
+
 
 # Top country pour la somme des dÃ©pense
 spendPerCountry  <- ddply(visitsp5, .(market), summarise, sum=sum(spend))
@@ -191,6 +193,8 @@ getAverageSpendPerVisitor <- function (mydata) {
 getAverageSpendPerDayPerVisitor <- function (mydata) {
   return (sum(mydata$spendPerDayPerVisitor*mydata$visits)/sum(mydata$visits))
 }
+
+#*************** EndFonctions ***************
 
 # dÃ©pense des visiteurs par pays
 spendPerVisitorPerCountry  <- ddply(visitsp7, .(market), getAverageSpendPerVisitor)
