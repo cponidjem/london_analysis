@@ -135,10 +135,12 @@ ggplot(perCountry, aes(x=market, y=sum, colour = factor(market %in% topCountryNa
 
 # on a ainsi pu determiner les 6 pays amenant le plus de de visiteurs sur la pÃ©riode
 
+topCountry <- arrange(topCountry, sum)
+topCountry$market <- factor(topCountry$market, levels=topCountry$market)
 p1 <- ggplot(topCountry, aes(x=market, y=sum, fill=market))+
   geom_bar(stat="identity",position="dodge")+
-  labs(x="Pays",y="Nombre de visiteurs (en milliers)",fill = "Pays")
-#ggtitle("Les 7 premiers pays a venir en plus grand nombre a Londres")
+  labs(x="Pays",y="Nombre de visiteurs (en milliers)",fill = "Pays")+
+  ggtitle("Les 7 premiers pays a venir en plus grand nombre a Londres")
 
 
 
@@ -189,6 +191,8 @@ p6 <- ggplot(topCountryNightsPerVisitor, aes(x=market, y=V1, fill=market))+
 # Top country pour la somme des depense
 spendPerCountry  <- ddply(visitsp5, .(market), summarise, sum=sum(spend))
 topCountrySpend <- head(arrange(spendPerCountry, -sum),7)
+topCountrySpend <- arrange(topCountrySpend, sum)
+topCountrySpend$market <- factor(topCountrySpend$market, levels=topCountrySpend$market)
 p3 <- ggplot(topCountrySpend, aes(x=market, y=sum, fill=market))+
   scale_fill_brewer(palette="Paired")+
   geom_bar(stat="identity",position="dodge")+
@@ -206,6 +210,8 @@ p4 <- ggplot(topCountryspendPerVisitor, aes(x=market, y=V1, fill=market))+
 # Les 7 premiers pays en depense par jour, par personne
 spendPerDayPerVisitorPerCountry  <- ddply(visitsp7, .(market), getAverageSpendPerDayPerVisitor)
 topCountryspendPerDayPerVisitor<- head(arrange(spendPerDayPerVisitorPerCountry, -V1),7)
+topCountryspendPerDayPerVisitor<- arrange(topCountryspendPerDayPerVisitor, V1)
+topCountryspendPerDayPerVisitor$market <- factor(topCountryspendPerDayPerVisitor$market, levels=topCountryspendPerDayPerVisitor$market)
 p5 <- ggplot(topCountryspendPerDayPerVisitor, aes(x=market, y=V1, fill=market))+
   scale_fill_brewer(palette="YlOrRd")+
   geom_bar(stat="identity",position="dodge")+
