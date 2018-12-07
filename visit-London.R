@@ -5,41 +5,33 @@
 #
 #*****************************************
 
-# importation des librairies
+# Importation des librairies
 library(ggplot2)
 library(plyr)
-library(dplyr)
 library(cowplot)
 
 
-#importation du fichier csv
+# Importation du fichier csv
 visitsLondon <- read.table(file="international-visitors-london-raw.csv",header=TRUE,sep=",")
-#decommenter la ligne suivante pour verifier l'import
+# Decommenter la ligne suivante pour verifier l'import
 #View(visitsLondon)
 
 
-# definissions des vecteurs de periodes
+# Definitions des vecteurs de periodes
 p5    <- c("2013", "2014","2015", "2016", "2017")
 p1318 <- c("2013", "2014","2015", "2016", "2017", "2018")
 
 
-# decoupage du dataset pour la periode 2013-2017
+# Decoupage du dataset pour la periode 2013-2017
 visitsp5 <- subset(visitsLondon, year %in% p5)
 visitsp5 <- select(visitsp5, -sample, -area)
-# on ajoute une colonne depense en livres par jour par personne
+# On ajoute une colonne depense en livres par jour par personne
 visitsp5$spendPerDayPerVisitor<-((visitsp5$spend*1000)/visitsp5$nights)
-
-
-# test pour les depenses en livres par personnes
-visitsp7 <- data.frame(visitsp5)
-visitsp7$spendPerVisitor<-((visitsp7$spend*1000)/visitsp7$visits)
-visitsp7$nightsPerVisitor<-visitsp7$nights/visitsp7$visits
-visitsp7 <- select (visitsp7, -quarter, -nights, -spend)
 
 
 #*************************************************************************************
 #
-#  Evolution du volume de visiteurs a Londres de 2013 a 2017 et leur dépenses totales
+#  Evolution du volume de visiteurs a Londres de 2013 a 2017 et leur depenses totales
 #
 #*************************************************************************************
 
@@ -68,7 +60,7 @@ plot_grid(v1, v2, labels=c("Volume de visiteurs par an de 2013 a 2017",
 #
 #********************************************************
 
-# somme des visiteurs par pays d'origine sur 2013-2017
+# Somme des visiteurs par pays d'origine sur 2013-2017
 perCountry <- ddply(visitsp5, .(market), summarise, sum=sum(visits))
 topCountry <- head(arrange(perCountry, -sum),7)
 # creation du vecteur TopCountryName contenant les noms du topCountry (voir def en haut)
@@ -77,7 +69,7 @@ ggplot(perCountry, aes(x=market, y=sum, colour = factor(market %in% topCountry$m
         labs(x="Pays",y="Nombre de visiteurs (en milliers)",fill = "Pays",colour="Le pays appartient au top",size="Visiteurs (milliers)")+
         ggtitle("Nombre de visiteurs par pays sur la periode 2013-2017")
 
-# on a ainsi pu determiner les 7 pays amenant le plus de de visiteurs sur la periode
+# On a ainsi pu determiner les 7 pays amenant le plus de de visiteurs sur la periode
 
 topCountry <- arrange(topCountry, sum)
 topCountry$market <- factor(topCountry$market, levels=topCountry$market)
@@ -90,20 +82,20 @@ p1
 
 #**************************************************************
 #
-#  top country pour les depenses 
+#  Top country pour les depenses 
 #
 #*************************************************************
 
 #*************** Fonctions *****************
 
-#get average spend per day per visitor on a set or subset
+# Moyenne ponderee des depenses par jour et par visiteur
 getAverageSpendPerDayPerVisitor <- function (mydata) {
   return (sum(mydata$spendPerDayPerVisitor*mydata$visits)/sum(mydata$visits))
 }
 
 #*************** EndFonctions ***************
 
-# Top country pour la somme des depense
+# Top country pour la somme des depenses
 spendPerCountry  <- ddply(visitsp5, .(market), summarise, sum=sum(spend))
 topCountrySpend <- head(arrange(spendPerCountry, -sum),7)
 topCountrySpend <- arrange(topCountrySpend, sum)
@@ -115,8 +107,8 @@ p3 <- ggplot(topCountrySpend, aes(x=market, y=sum, fill=market))+
 # ggtitle("Les 7 premiers pays en depense totale sur 2013-2017")
 
 
-# Les 7 premiers pays en depense par jour, par personne
-spendPerDayPerVisitorPerCountry  <- ddply(visitsp7, .(market), getAverageSpendPerDayPerVisitor)
+# Les 7 premiers pays en depenses par jour, par personne
+spendPerDayPerVisitorPerCountry  <- ddply(visitsp5, .(market), getAverageSpendPerDayPerVisitor)
 topCountryspendPerDayPerVisitor<- head(arrange(spendPerDayPerVisitorPerCountry, -V1),7)
 topCountryspendPerDayPerVisitor<- arrange(topCountryspendPerDayPerVisitor, V1)
 topCountryspendPerDayPerVisitor$market <- factor(topCountryspendPerDayPerVisitor$market, levels=topCountryspendPerDayPerVisitor$market)
@@ -126,7 +118,7 @@ p5 <- ggplot(topCountryspendPerDayPerVisitor, aes(x=market, y=V1, fill=market))+
   labs(x="Pays",y="Depenses (en livres)",fill = "Pays")
 
 
-#on affiche les resultats precedents
+# On affiche les resultats precedents
 plot_grid(p3, p5,labels=c("Les 7 premiers pays en depense totale sur 2013-2017",
                           "Les 7 premiers pays en depenses par jour et personne sur 2013-2017"), ncol = 1, nrow = 2)
 
@@ -147,19 +139,19 @@ d1 <- ggplot(spendPerPurpose, aes(x=year, y=sum, fill=purpose))+
 
 
 # Somme depensee en fonction du motif par annee par jour et par personne sur 2013-2017
-spendsPerPurpose <- ddply(visitsp7, .(year, purpose),  getAverageSpendPerDayPerVisitor)
+spendsPerPurpose <- ddply(visitsp5, .(year, purpose),  getAverageSpendPerDayPerVisitor)
 d2 <- ggplot(spendsPerPurpose, aes(x=year, y=V1, colour=purpose))+
   geom_line(size=1) + geom_point(size=2)+
   labs(x="Annees",y="Depenses en livres",color = "Motif")
 
 
-# nombre de visiteurs par motif de venue et par ans
+# Nombre de visiteurs par motif de venue et par an
 purposePerYear <-ddply(visitsp5, .(year, purpose), summarise, sum=sum(visits))
 d3 <- ggplot(purposePerYear, aes(x=year, y=sum, colour=purpose))+
   geom_line(size=1)+geom_point(size=2)+
   labs(x="Annees",y="Nombres de visites (en milliers)", color = "Motif")
 
-
+# On affiche les resultats precedents
 d <- plot_grid(d3, d2, labels=c("Volume de visites par motif et annee","Depenses par jour et personne par motif et annee"), ncol = 1, nrow = 2)
 plot_grid(d1, d, labels=c("Proportion des depenses par motif et annee",""), ncol = 2, nrow = 1)
 
@@ -179,11 +171,12 @@ t1 <- ggplot(transport, aes(x=year, y=sum, fill=mode))+
 
 
 # Depenses moyennes par jour et par personnes
-spendPerDuration <- ddply(visitsp7, .(year, mode),  getAverageSpendPerDayPerVisitor)
+spendPerDuration <- ddply(visitsp5, .(year, mode),  getAverageSpendPerDayPerVisitor)
 t2 <- ggplot(spendPerDuration, aes(x=year, y=V1, colour=mode))+
   geom_line(size=1) + geom_point(size=2)+
   labs(title="Depenses en moyenne par jour et par personnes
        en fonction du mode de transport et de l'annee", 
        x="Annee",y="Livres",color = "Transport")
 
+# On affiche les resultats precedents
 plot_grid(t1, t2, ncol=2, nrow=1)
